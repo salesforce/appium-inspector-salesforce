@@ -363,6 +363,11 @@
     padding-bottom: 0px;
 }
 
+.utam-pageobject-tree-card {
+    word-wrap: break-all;
+    word-break: break-all;
+}
+
 .selected-element-table-cells {
     word-wrap: break-all;
     word-break: break-all;
