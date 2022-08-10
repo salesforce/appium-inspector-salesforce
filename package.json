@@ -168,7 +168,6 @@
     "redux-thunk": "2.4.1",
     "request": "2.88.2",
     "request-promise": "4.2.6",
-    "runtime-npm-install": "^5.0.0",
     "salesforce-pageobjects": "^1.2.0",
     "semver": "7.3.7",
     "source-map-support": "0.5.21",
