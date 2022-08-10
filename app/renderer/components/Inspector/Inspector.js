@@ -32,6 +32,7 @@ import {
   GlobalOutlined,
 } from '@ant-design/icons';
 import { BUTTON } from '../../../../gui-common/components/AntdTypes';
+import PageObjectTree from './PageObjectTree';
 
 const {SELECT, SWIPE, TAP} = SCREENSHOT_INTERACTION_MODE;
 
@@ -283,6 +284,11 @@ export default class Inspector extends Component {
               title={<span><InfoCircleOutlined /> {t('Session Information')}</span>}
               className={InspectorStyles['interaction-tab-card']}>
               <SessionInfo {...this.props} />
+            </Card>
+          </TabPane>
+          <TabPane tab={t('UTAM Page Object Tree')}>
+            <Card title={<span><FileTextOutlined /> {t('UTAM Page Object Tree')} </span>}>
+              <PageObjectTree {...this.props} />
             </Card>
           </TabPane>
         </Tabs>
