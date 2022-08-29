@@ -346,5 +346,9 @@
   "appPathOrUrl": "Path or URL for app",
   "fileContentString": "File contents as Base64-encoded string",
   "inspectorMoved": "The Inspector is now released as a separate app. Please visit {{url}}",
-  "utamPageObjectTree": "UTAM Page Object Tree"
+  "utamPageObjectTree": "UTAM Page Object Tree",
+  "utamPageObjectPackageName": "Page Object Package Name",
+  "utamPageObjectPackageVersion": "Page Object Package Version",
+  "utamPageObjectModuleName": "Page Object Module Name",
+  "startInspect": "Start Inspect"
 }
