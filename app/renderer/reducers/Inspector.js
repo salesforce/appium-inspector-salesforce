@@ -18,6 +18,7 @@ import { SET_SOURCE_AND_SCREENSHOT, QUIT_SESSION_REQUESTED, QUIT_SESSION_DONE,
          SELECT_TICK_ELEMENT, UNSELECT_TICK_ELEMENT, SET_GESTURE_TAP_COORDS_MODE, CLEAR_TAP_COORDINATES, DELETE_SAVED_GESTURES_REQUESTED, DELETE_SAVED_GESTURES_DONE,
          SELECT_HOVERED_CENTROID, UNSELECT_HOVERED_CENTROID, SELECT_CENTROID, UNSELECT_CENTROID,
          SET_SHOW_CENTROIDS,
+         START_PAGEOBJECT_INSPECTING, PAGEOBJECT_INSPECTING_DONE, PAGEOBJECT_INSPECTING_ERROR
 } from '../actions/Inspector';
 import { SCREENSHOT_INTERACTION_MODE, INTERACTION_MODE, APP_MODE } from '../components/Inspector/shared';
 
@@ -57,6 +58,9 @@ const INITIAL_STATE = {
   visibleCommandResult: null,
   visibleCommandMethod: null,
   isAwaitingMjpegStream: true,
+  isPageObjectInspectInProgress: false,
+  pageObjectTreeData: [],
+  errorMsg: '',
 };
 
 let nextState;
@@ -587,6 +591,27 @@ export default function inspector (state = INITIAL_STATE, action) {
 
     case CLEAR_TAP_COORDINATES:
       return omit(state, 'tickCoordinates');
+
+    case START_PAGEOBJECT_INSPECTING:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: true,
+      };
+
+    case PAGEOBJECT_INSPECTING_DONE:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: false,
+        pageObjectTreeData: action.pageObjectTreeData,
+      };
+
+    case PAGEOBJECT_INSPECTING_ERROR:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: false,
+        pageObjectTreeData: [],
+        errorMsg: action.errorMsg,
+      };
 
     default:
       return {...state};

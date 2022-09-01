@@ -2,7 +2,7 @@ import InspectorStyles from './Inspector.css';
 import PageObjectPacakgeParser from './PageObjectPackageParser';
 import Path from 'path';
 import React, { Component, useState } from 'react';
-import { Button, Col, Form, Input, Row } from 'antd';
+import { Button, Col, Form, Input, Row, Spin } from 'antd';
 import { SelectOutlined } from '@ant-design/icons';
 
 const FormItem = Form.Item;
@@ -10,10 +10,9 @@ const FormItem = Form.Item;
 export default class PageObjectTree extends Component {
   constructor (props) {
     super(props);
-    this.ChildrenList = new Map();
     this.state = {
       items: [],
-      treeData: [],
+      //treeData: [],
       text: '',
       package: '',
       version: '',
@@ -39,12 +38,13 @@ export default class PageObjectTree extends Component {
   }
 
   handleSubmit (event) {
-    this.setState({treeData: this.buildTreeData()});
+    const { inspectPageObject } = this.props;
+    inspectPageObject(this.state.package, this.state.version, this.state.module);
     event.preventDefault();
   }
 
   render () {
-    const { t } = this.props;
+    const { t, isPageObjectInspectInProgress, pageObjectTreeData, errorMsg } = this.props;
 
     return (
       <div className={InspectorStyles['tree-container']}>
@@ -89,44 +89,37 @@ export default class PageObjectTree extends Component {
             </Col>
           </Row>
         </Form>
-        <Tree treeData={this.state.treeData}/>
+        <Spin size="large" spinning={!!isPageObjectInspectInProgress}>
+          <Tree treeData={pageObjectTreeData}/>
+          <span>{errorMsg}</span>
+        </Spin>
       </div>
     );
   }
+}
 
-  addRootAndChild (root, child) {
-    if (!this.ChildrenList.has(root)) {
-      this.ChildrenList.set(root, []);
-    }
-    let children = this.ChildrenList.get(root);
-    children = children.concat(child);
-    this.ChildrenList.set(root, children);
-  }
-
-  buildTreeData () {
-    const packageName = this.state.package;
-    const moduleName = this.state.module;
-    const packageVersion = this.state.version;
-    this.ChildrenList = new Map();
-    const child_process = require('child_process');
-    try {
-      //child_process.execSync(`npm uninstall ${packageName}`);
-      child_process.execSync(`npm install ${packageName}@${packageVersion}`);
-      // eslint-disable-next-line no-console
-      console.log(`Succeed to install package: ${packageName} with version: ${packageVersion}`);
-    } catch (ex) {
-      // eslint-disable-next-line no-console
-      console.log(`Fail to install package for ${ex.stdout}`);
-    }
+export async function buildTreeData (packageName, packageVersion, moduleName) {
+  const ChildrenList = new Map();
+  const util = require('util');
+  const exec = util.promisify(require('child_process').exec);
+  if (packageName.size !== 0 && packageVersion.size !== 0 && moduleName.size !== 0) {
+    await exec(`npm install ${packageName}@${packageVersion}`);
     const appDir = process.cwd();
     const packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
     const poPackageParser = new PageObjectPacakgeParser(packageDir);
     poPackageParser.buildRootMap();
     const rootMap = poPackageParser.getMap();
-    rootMap.forEach((value, key) => {
-      this.addRootAndChild(key, value);
-    });
-    return Array.from(this.ChildrenList, ([root, children]) => ({ root, children }));
+    (function (ChildrenList) {
+      rootMap.forEach((child, root) => {
+        if (!ChildrenList.has(root)) {
+          ChildrenList.set(root, []);
+        }
+        let children = ChildrenList.get(root);
+        children = children.concat(child);
+        ChildrenList.set(root, children);
+      });
+    })(ChildrenList);
+    return Array.from(ChildrenList, ([root, children]) => ({ root, children }));
   }
 }
 
