@@ -2,43 +2,124 @@ import InspectorStyles from './Inspector.css';
 import PageObjectPacakgeParser from './PageObjectPackageParser';
 import Path from 'path';
 import React, { Component, useState } from 'react';
+import { Button, Col, Form, Input, Row, Spin } from 'antd';
+import { SelectOutlined } from '@ant-design/icons';
+
+const FormItem = Form.Item;
 
 export default class PageObjectTree extends Component {
   constructor (props) {
     super(props);
-    this.ChildrenList = new Map();
-    this.treeData = this.buildTreeData();
-    this.state = { items: [], text: ''};
+    this.state = {
+      items: [],
+      //treeData: [],
+      text: '',
+      package: '',
+      version: '',
+      module: ''
+    };
+
+    this.handlePackageNameChange = this.handlePackageNameChange.bind(this);
+    this.handlePackageVersionChange = this.handlePackageVersionChange.bind(this);
+    this.handleModuleChange = this.handleModuleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleModuleChange (event) {
+    this.setState({module: event.target.value});
+  }
+
+  handlePackageNameChange (event) {
+    this.setState({package: event.target.value});
+  }
+
+  handlePackageVersionChange (event) {
+    this.setState({version: event.target.value});
+  }
+
+  handleSubmit (event) {
+    const { inspectPageObject } = this.props;
+    inspectPageObject(this.state.package, this.state.version, this.state.module);
+    event.preventDefault();
   }
 
   render () {
+    const { t, isPageObjectInspectInProgress, pageObjectTreeData, errorMsg } = this.props;
+
     return (
       <div className={InspectorStyles['tree-container']}>
-        <h1>Salesforce App Page Objects</h1>
-        <Tree treeData={this.treeData} />
+        <Form>
+          <Row gutter={8}>
+            <Col span={12}>
+              <FormItem>
+                <Input
+                  type='text'
+                  addonBefore={t('utamPageObjectPackageName')}
+                  placeholder='fake-pageobjects'
+                  value={this.state.package}
+                  onChange={this.handlePackageNameChange} />
+              </FormItem>
+            </Col>
+            <Col span={12}>
+              <FormItem>
+                <Input
+                  type='text'
+                  addonBefore={t('utamPageObjectPackageVersion')}
+                  placeholder='1.0.0'
+                  value={this.state.version}
+                  onChange={this.handlePackageVersionChange} />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row gutter={8}>
+            <Col span={12}>
+              <FormItem>
+                <Input
+                  type='text'
+                  addonBefore={t('utamPageObjectModuleName')}
+                  placeholder='fakeapp'
+                  value={this.state.module}
+                  onChange={this.handleModuleChange} />
+              </FormItem>
+            </Col>
+            <Col span={4}>
+              <FormItem>
+                <Button icon={<SelectOutlined/>} onClick={this.handleSubmit}>{t('startInspect')}</Button>
+              </FormItem>
+            </Col>
+          </Row>
+        </Form>
+        <Spin size="large" spinning={!!isPageObjectInspectInProgress}>
+          <Tree treeData={pageObjectTreeData}/>
+          <span>{errorMsg}</span>
+        </Spin>
       </div>
     );
   }
+}
 
-  buildTreeData () {
+export async function buildTreeData (packageName, packageVersion, moduleName) {
+  const ChildrenList = new Map();
+  const util = require('util');
+  const exec = util.promisify(require('child_process').exec);
+  if (packageName.size !== 0 && packageVersion.size !== 0 && moduleName.size !== 0) {
+    await exec(`npm install ${packageName}@${packageVersion}`);
     const appDir = process.cwd();
-    const packageDir = Path.join(appDir, '/node_modules/salesforce-pageobjects/dist/salesforceapp');
+    const packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
     const poPackageParser = new PageObjectPacakgeParser(packageDir);
     poPackageParser.buildRootMap();
     const rootMap = poPackageParser.getMap();
-    rootMap.forEach((value, key) => {
-      this.addRootAndChild(key, value);
-    });
-    return Array.from(this.ChildrenList, ([root, children]) => ({ root, children }));
-  }
-
-  addRootAndChild (root, child) {
-    if (!this.ChildrenList.has(root)) {
-      this.ChildrenList.set(root, []);
-    }
-    let children = this.ChildrenList.get(root);
-    children = children.concat(child);
-    this.ChildrenList.set(root, children);
+    (function (ChildrenList) {
+      rootMap.forEach((child, root) => {
+        if (!ChildrenList.has(root)) {
+          ChildrenList.set(root, []);
+        }
+        let children = ChildrenList.get(root);
+        children = children.concat(child);
+        ChildrenList.set(root, children);
+      });
+    })(ChildrenList);
+    return Array.from(ChildrenList, ([root, children]) => ({ root, children }));
   }
 }
 

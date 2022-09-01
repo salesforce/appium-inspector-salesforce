@@ -9,6 +9,7 @@ import { getSetting, setSetting, SAVED_FRAMEWORK } from '../../shared/settings';
 import i18n from '../../configs/i18next.config.renderer';
 import AppiumClient, { NATIVE_APP } from '../lib/appium-client';
 import { notification } from 'antd';
+import { buildTreeData } from '../components/Inspector/PageObjectTree';
 
 export const SET_SESSION_DETAILS = 'SET_SESSION_DETAILS';
 export const SET_SOURCE_AND_SCREENSHOT = 'SET_SOURCE_AND_SCREENSHOT';
@@ -106,6 +107,9 @@ export const SET_GESTURE_TAP_COORDS_MODE = 'SET_GESTURE_TAP_COORDS_MODE';
 export const CLEAR_TAP_COORDINATES = 'CLEAR_TAP_COORDINATES';
 
 export const TOGGLE_SHOW_ATTRIBUTES = 'TOGGLE_SHOW_ATTRIBUTES';
+export const START_PAGEOBJECT_INSPECTING = 'START_PAGEOBJECT_INSPECTING';
+export const PAGEOBJECT_INSPECTING_DONE = 'PAGEOBJECT_INSPECTING_DONE';
+export const PAGEOBJECT_INSPECTING_ERROR = 'PAGEOBJECT_INSPECTING_ERROR';
 
 const KEEP_ALIVE_PING_INTERVAL = 5 * 1000;
 const NO_NEW_COMMAND_LIMIT = 24 * 60 * 60 * 1000; // Set timeout to 24 hours
@@ -847,5 +851,17 @@ export function tapTickCoordinates (x, y) {
 export function toggleShowAttributes () {
   return (dispatch) => {
     dispatch({type: TOGGLE_SHOW_ATTRIBUTES});
+  };
+}
+
+export function inspectPageObject (packageName, packageVersion, moduleName) {
+  return async (dispatch) => {
+    dispatch({type: START_PAGEOBJECT_INSPECTING});
+    try {
+      const treeData = await buildTreeData(packageName, packageVersion, moduleName);
+      dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
+    } catch (ex) {
+      dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});
+    }
   };
 }

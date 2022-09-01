@@ -17,7 +17,8 @@ import { SET_SOURCE_AND_SCREENSHOT, QUIT_SESSION_REQUESTED, QUIT_SESSION_DONE,
          GET_SAVED_GESTURES_REQUESTED, GET_SAVED_GESTURES_DONE, SET_LOADED_GESTURE, REMOVE_LOADED_GESTURE, SHOW_GESTURE_ACTION, HIDE_GESTURE_ACTION,
          SELECT_TICK_ELEMENT, UNSELECT_TICK_ELEMENT, SET_GESTURE_TAP_COORDS_MODE, CLEAR_TAP_COORDINATES, DELETE_SAVED_GESTURES_REQUESTED, DELETE_SAVED_GESTURES_DONE,
          SELECT_HOVERED_CENTROID, UNSELECT_HOVERED_CENTROID, SELECT_CENTROID, UNSELECT_CENTROID,
-         SET_SHOW_CENTROIDS, TOGGLE_SHOW_ATTRIBUTES
+         SET_SHOW_CENTROIDS, TOGGLE_SHOW_ATTRIBUTES,
+         START_PAGEOBJECT_INSPECTING, PAGEOBJECT_INSPECTING_DONE, PAGEOBJECT_INSPECTING_ERROR
 } from '../actions/Inspector';
 import { SCREENSHOT_INTERACTION_MODE, INTERACTION_MODE, APP_MODE } from '../components/Inspector/shared';
 
@@ -58,6 +59,9 @@ const INITIAL_STATE = {
   visibleCommandMethod: null,
   isAwaitingMjpegStream: true,
   showSourceAttrs: false,
+  isPageObjectInspectInProgress: false,
+  pageObjectTreeData: [],
+  errorMsg: '',
 };
 
 let nextState;
@@ -589,8 +593,31 @@ export default function inspector (state = INITIAL_STATE, action) {
     case CLEAR_TAP_COORDINATES:
       return omit(state, 'tickCoordinates');
 
+<<<<<<< HEAD
     case TOGGLE_SHOW_ATTRIBUTES:
       return {...state, showSourceAttrs: !state.showSourceAttrs};
+=======
+    case START_PAGEOBJECT_INSPECTING:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: true,
+      };
+
+    case PAGEOBJECT_INSPECTING_DONE:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: false,
+        pageObjectTreeData: action.pageObjectTreeData,
+      };
+
+    case PAGEOBJECT_INSPECTING_ERROR:
+      return {
+        ...state,
+        isPageObjectInspectInProgress: false,
+        pageObjectTreeData: [],
+        errorMsg: action.errorMsg,
+      };
+>>>>>>> 601fad2 (Dynamically adding the inspect po package info and inspect it (#3))
 
     default:
       return {...state};
