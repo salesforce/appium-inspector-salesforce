@@ -12,7 +12,6 @@ export default class PageObjectTree extends Component {
     super(props);
     this.state = {
       items: [],
-      //treeData: [],
       text: '',
       package: '',
       version: '',
@@ -99,7 +98,6 @@ export default class PageObjectTree extends Component {
 }
 
 export async function buildTreeData (packageName, packageVersion, moduleName) {
-  const ChildrenList = new Map();
   const util = require('util');
   const exec = util.promisify(require('child_process').exec);
   if (packageName.size !== 0 && packageVersion.size !== 0 && moduleName.size !== 0) {
@@ -107,19 +105,12 @@ export async function buildTreeData (packageName, packageVersion, moduleName) {
     const appDir = process.cwd();
     const packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
     const poPackageParser = new PageObjectPacakgeParser(packageDir);
+    // Twice build will take care there is no root Page Object for non-root Page Object
+    // When the target root Page Object not build up yet in the first build
+    poPackageParser.buildRootMap();
     poPackageParser.buildRootMap();
     const rootMap = poPackageParser.getMap();
-    (function (ChildrenList) {
-      rootMap.forEach((child, root) => {
-        if (!ChildrenList.has(root)) {
-          ChildrenList.set(root, []);
-        }
-        let children = ChildrenList.get(root);
-        children = children.concat(child);
-        ChildrenList.set(root, children);
-      });
-    })(ChildrenList);
-    return Array.from(ChildrenList, ([root, children]) => ({ root, children }));
+    return Array.from(rootMap, ([root, children]) => ({ root, children }));
   }
 }
 
@@ -135,7 +126,8 @@ function Tree ({ treeData }) {
 
 function TreeNode ({ node }) {
   const label = node.root;
-  const children = node.children;
+  const methods = node.children.methods.join(' ');
+  const children = node.children.children;
 
   const [showChildren, setShowChildren] = useState(false);
 
@@ -146,10 +138,17 @@ function TreeNode ({ node }) {
     <>
       <div onClick={handleClick} style={{ marginBottom: '10px',  marginTop: '10px', fontSize: '20px'}}>
         <li>{label}</li>
+        <ul>Methods: [{methods}]</ul>
       </div>
       <div>
         <ul style={{ paddingLeft: '10px'}}>
-          {showChildren && children.map((child) => <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px'}}> {child} </li>)}
+          {showChildren && children.map(
+            (child) =>
+              <>
+                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}> {child.name}</li>
+                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}> Methods: [{child.methods.join(' ')}]</li>
+              </>
+          )}
         </ul>
       </div>
     </>

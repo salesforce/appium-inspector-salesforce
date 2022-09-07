@@ -3,11 +3,13 @@ import { findNodeAtLocation, getNodeValue, parseTree } from 'jsonc-parser';
 import { isCustomType } from '@utam/compiler/build/utils/element-types';
 import { join, basename } from 'path';
 import { UTAM_EXT } from 'utam/build/utils/constants';
+import PageObjectTreeNode from '../Inspector/PageObjectTreeNode';
 
 export default class PageObjectPackageParser {
   constructor (packagePath) {
     this.packageDir = packagePath;
     this.rootMap = new Map();
+    this.orphans = [];
   }
 
   buildRootMap () {
@@ -41,26 +43,54 @@ export default class PageObjectPackageParser {
     const interfaceNode = findNodeAtLocation(rootNode, ['interface']);
     // Only parse the interface file
     if (interfaceNode !== undefined && interfaceNode.value === true) {
-      const rootMarkerNode = findNodeAtLocation(rootNode, ['root']);
       const methodsNode = findNodeAtLocation(rootNode, ['methods']);
-      // For root Page Object, set a blank arrary for its children
-      if (rootMarkerNode !== undefined && rootMarkerNode.value === true) {
-        this.rootMap.set(pageObjectName, []);
-      }
-      // For non-root Page Object
-      if (methodsNode !== undefined && methodsNode.children) {
+
+      const methods = [];
+      const children = [];
+      if (methodsNode && methodsNode.children) {
         methodsNode.children.forEach((methodObjectNode) => {
+          // Get all methods name
+          const name = findNodeAtLocation(methodObjectNode, ['name']);
+          if (name && name.value.length !== 0) {
+            methods.push(name.value);
+          }
+
+          // Get all children info
           const returnTypeNode = findNodeAtLocation(methodObjectNode, ['returnType']);
           if (returnTypeNode) {
             const returnTypeNodeValue = getNodeValue(returnTypeNode);
             if (isCustomType(returnTypeNodeValue)) {
               const typeValue = returnTypeNodeValue.split('/').pop();
-              this.rootMap.has(pageObjectName) ?
-                this.rootMap.get(pageObjectName).push(typeValue) :
-                this.rootMap.set(pageObjectName).push(typeValue);
+              children.push(new PageObjectTreeNode(typeValue, []));
             }
           }
         });
+      }
+
+      // For root Page Object
+      const rootMarkerNode = findNodeAtLocation(rootNode, ['root']);
+      if (rootMarkerNode !== undefined && rootMarkerNode.value === true) {
+        const rootNode = new PageObjectTreeNode(pageObjectName, methods, children);
+        if (!this.rootMap.has(pageObjectName)) {
+          this.rootMap.set(pageObjectName, rootNode);
+        }
+      } else {
+        // For non-root Page Object
+        const childNode = new PageObjectTreeNode(pageObjectName, methods, children);
+        for (let [key, value] of this.rootMap) {
+          if (value.length !== 0) {
+            const existingChildren = value.children;
+            for (let i = 0; i < existingChildren.length; i++) {
+              if (existingChildren[i].name === pageObjectName) {
+                existingChildren[i] = childNode;
+                value.children = existingChildren;
+                this.rootMap.set(key, value);
+                // Get out from the inside for loop
+                i = existingChildren.length;
+              }
+            }
+          }
+        }
       }
     }
   }
