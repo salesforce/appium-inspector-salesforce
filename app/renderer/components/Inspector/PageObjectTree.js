@@ -107,10 +107,10 @@ export async function buildTreeData (packageName, packageVersion, moduleName) {
     const poPackageParser = new PageObjectPacakgeParser(packageDir);
     // Twice build will take care there is no root Page Object for non-root Page Object
     // When the target root Page Object not build up yet in the first build
-    poPackageParser.buildRootMap();
-    poPackageParser.buildRootMap();
-    const rootMap = poPackageParser.getMap();
-    return Array.from(rootMap, ([root, children]) => ({ root, children }));
+    poPackageParser.buildTreeMap();
+    poPackageParser.buildTreeMap();
+    const treeMap = poPackageParser.getMap();
+    return Array.from(treeMap, ([root, children]) => ({ root, children }));
   }
 }
 

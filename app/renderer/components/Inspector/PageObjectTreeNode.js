@@ -6,7 +6,7 @@ export default class PageObjectTreeNode {
     this.methods = methods;
     // PageObjectTreeNode arrary
     this.children = children;
-
+    // {ios: '', android: ''} object
     this.rootSelector = rootSelector;
   }
 }
