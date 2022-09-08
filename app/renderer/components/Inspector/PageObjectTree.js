@@ -126,8 +126,9 @@ function Tree ({ treeData }) {
 
 function TreeNode ({ node }) {
   const label = node.root;
-  const methods = node.children.methods.join(' ');
+  const methods = node.children.methods;
   const children = node.children.children;
+  const rootSelector = node.children.rootSelector;
 
   const [showChildren, setShowChildren] = useState(false);
 
@@ -138,7 +139,18 @@ function TreeNode ({ node }) {
     <>
       <div onClick={handleClick} style={{ marginBottom: '10px',  marginTop: '10px', fontSize: '20px'}}>
         <li>{label}</li>
-        <ul>Methods: [{methods}]</ul>
+        <ul>Methods
+          {methods.map(
+            (method) =>
+              <>
+                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>{method}</li>
+              </>
+          )}
+        </ul>
+        <ul>Root
+          <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>iOS: [{rootSelector.ios}]</li>
+          <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>Android: [{rootSelector.android}]</li>
+        </ul>
       </div>
       <div>
         <ul style={{ paddingLeft: '10px'}}>
