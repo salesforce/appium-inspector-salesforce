@@ -593,10 +593,9 @@ export default function inspector (state = INITIAL_STATE, action) {
     case CLEAR_TAP_COORDINATES:
       return omit(state, 'tickCoordinates');
 
-<<<<<<< HEAD
     case TOGGLE_SHOW_ATTRIBUTES:
       return {...state, showSourceAttrs: !state.showSourceAttrs};
-=======
+
     case START_PAGEOBJECT_INSPECTING:
       return {
         ...state,
@@ -617,7 +616,6 @@ export default function inspector (state = INITIAL_STATE, action) {
         pageObjectTreeData: [],
         errorMsg: action.errorMsg,
       };
->>>>>>> 601fad2 (Dynamically adding the inspect po package info and inspect it (#3))
 
     default:
       return {...state};
