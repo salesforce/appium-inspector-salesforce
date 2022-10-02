@@ -858,7 +858,10 @@ export function inspectPageObject (packageName, packageVersion, moduleName) {
   return async (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(packageName, packageVersion, moduleName);
+      const treeData = await buildTreeData(
+        packageName ? packageName.toLowerCase() : 'salesforce-pageobjects',
+        packageVersion ? packageVersion : 'latest',
+        moduleName ? moduleName.toLowerCase() : 'salesforceapp');
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (ex) {
       dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});
