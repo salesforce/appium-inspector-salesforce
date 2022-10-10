@@ -115,6 +115,9 @@ export default class PageObjectPackageParser {
         } else if (platform === 'android') {
           rootSelector.android = selector;
         }
+
+        rootSelector.type = rootSelectorNode.children[0].children[0].value;
+
         const node = new PageObjectTreeNode(pageObjectName, rootSelector, methods, children);
         this.treeMap.set(pageObjectName, node);
       }

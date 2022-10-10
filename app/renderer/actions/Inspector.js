@@ -51,6 +51,8 @@ export const SET_LOCATOR_TEST_STRATEGY = 'SET_LOCATOR_TEST_STRATEGY';
 export const SET_LOCATOR_TEST_VALUE = 'SET_LOCATOR_TEST_VALUE';
 export const SEARCHING_FOR_ELEMENTS = 'SEARCHING_FOR_ELEMENTS';
 export const SEARCHING_FOR_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ELEMENTS_COMPLETED';
+export const SEARCHING_FOR_ROOT_ELEMENTS = 'SEARCHING_FOR_ROOT_ELEMENTS';
+export const SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED';
 export const GET_FIND_ELEMENTS_TIMES = 'GET_FIND_ELEMENTS_TIMES';
 export const GET_FIND_ELEMENTS_TIMES_COMPLETED = 'GET_FIND_ELEMENTS_TIMES_COMPLETED';
 export const SET_LOCATOR_TEST_ELEMENT = 'SET_LOCATOR_TEST_ELEMENT';
@@ -106,7 +108,6 @@ export const UNSELECT_TICK_ELEMENT = 'UNSELECT_TICK_ELEMENT';
 export const SET_GESTURE_TAP_COORDS_MODE = 'SET_GESTURE_TAP_COORDS_MODE';
 export const CLEAR_TAP_COORDINATES = 'CLEAR_TAP_COORDINATES';
 
-export const TOGGLE_SHOW_ATTRIBUTES = 'TOGGLE_SHOW_ATTRIBUTES';
 export const START_PAGEOBJECT_INSPECTING = 'START_PAGEOBJECT_INSPECTING';
 export const PAGEOBJECT_INSPECTING_DONE = 'PAGEOBJECT_INSPECTING_DONE';
 export const PAGEOBJECT_INSPECTING_ERROR = 'PAGEOBJECT_INSPECTING_ERROR';
@@ -425,6 +426,25 @@ export function searchForElement (strategy, selector) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED, elements});
     } catch (error) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED});
+      showError(error, 10);
+    }
+  };
+}
+
+export function searchForPORootElement (strategy, selector, po) {
+  return async (dispatch, getState) => {
+    dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
+    try {
+      const callAction = callClientMethod({strategy, selector, fetchArray: true});
+      let {elements, variableName} = await callAction(dispatch, getState);
+      const findAction = findAndAssign(strategy, selector, variableName, true);
+      findAction(dispatch, getState);
+      elements = elements.map((el) => el.id);
+      if (elements.length > 0) {
+        elements.push(po.root);
+        dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED, elements});
+      }
+    } catch (error) {
       showError(error, 10);
     }
   };
@@ -848,20 +868,11 @@ export function tapTickCoordinates (x, y) {
   };
 }
 
-export function toggleShowAttributes () {
-  return (dispatch) => {
-    dispatch({type: TOGGLE_SHOW_ATTRIBUTES});
-  };
-}
-
 export function inspectPageObject (packageName, packageVersion, moduleName) {
   return async (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(
-        packageName ? packageName.toLowerCase() : 'salesforce-pageobjects',
-        packageVersion ? packageVersion : 'latest',
-        moduleName ? moduleName.toLowerCase() : 'salesforceapp');
+      const treeData = await buildTreeData(packageName, packageVersion, moduleName);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (ex) {
       dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});

@@ -1,10 +1,10 @@
 import InspectorStyles from './Inspector.css';
 import PageObjectPacakgeParser from './PageObjectPackageParser';
 import Path from 'path';
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Form, Input, Row, Spin } from 'antd';
 import { SelectOutlined } from '@ant-design/icons';
-
+import Tree from './Tree';
 const FormItem = Form.Item;
 
 export default class PageObjectTree extends Component {
@@ -22,6 +22,7 @@ export default class PageObjectTree extends Component {
     this.handlePackageVersionChange = this.handlePackageVersionChange.bind(this);
     this.handleModuleChange = this.handleModuleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleFindPO = this.handleFindPO.bind(this);
   }
 
   handleModuleChange (event) {
@@ -39,6 +40,41 @@ export default class PageObjectTree extends Component {
   handleSubmit (event) {
     const { inspectPageObject } = this.props;
     inspectPageObject(this.state.package, this.state.version, this.state.module);
+    event.preventDefault();
+  }
+
+  handleFindPO (event) {
+    const {driver, pageObjectTreeData, searchForPORootElement } = this.props;
+    const {isIOS, isAndroid} = driver.client;
+    const strategyMap = {
+      'accessid': 'accessibility id',
+      'css': 'css',
+      'id': 'id',
+      'name': 'name',
+      'className': 'class name',
+      'uiautomator': '-android uiautomator',
+      'classchain': '-ios class chain',
+    };
+
+    for (let po of pageObjectTreeData) {
+      let t = strategyMap[po.children.rootSelector.type];
+
+      let id = isIOS ? po.children.rootSelector.ios : po.children.rootSelector.android;
+      if (isIOS) {
+        if (t.includes('automator')) {
+          continue;
+        }
+      }
+
+      if (isAndroid) {
+        if (t.includes('classchain')) {
+          continue;
+        }
+      }
+
+      searchForPORootElement(t, id, po);
+    }
+
     event.preventDefault();
   }
 
@@ -83,7 +119,12 @@ export default class PageObjectTree extends Component {
             </Col>
             <Col span={4}>
               <FormItem>
-                <Button icon={<SelectOutlined/>} onClick={this.handleSubmit}>{t('startInspect')}</Button>
+                <Button icon={<SelectOutlined/>} onClick={this.handleSubmit} >{t('startInspect')}</Button>
+              </FormItem>
+            </Col>
+            <Col span={4}>
+              <FormItem>
+                <Button icon={<SelectOutlined/>} onClick={this.handleFindPO} >{t('findCurrentPO')}</Button>
               </FormItem>
             </Col>
           </Row>
@@ -96,6 +137,7 @@ export default class PageObjectTree extends Component {
     );
   }
 }
+
 
 export async function buildTreeData (packageName, packageVersion, moduleName) {
   const util = require('util');
@@ -112,57 +154,4 @@ export async function buildTreeData (packageName, packageVersion, moduleName) {
     const treeMap = poPackageParser.getMap();
     return Array.from(treeMap, ([root, children]) => ({ root, children }));
   }
-}
-
-function Tree ({ treeData }) {
-  return (
-    <ul>
-      {treeData.map((node) => (
-        <TreeNode node={node} key={node.root}/>
-      ))}
-    </ul>
-  );
-}
-
-function TreeNode ({ node }) {
-  const label = node.root;
-  const methods = node.children.methods;
-  const children = node.children.children;
-  const rootSelector = node.children.rootSelector;
-
-  const [showChildren, setShowChildren] = useState(false);
-
-  const handleClick = () => {
-    setShowChildren(!showChildren);
-  };
-  return (
-    <>
-      <div onClick={handleClick} style={{ marginBottom: '10px',  marginTop: '10px', fontSize: '20px'}}>
-        <li>{label}</li>
-        <ul>Methods
-          {methods.map(
-            (method) =>
-              <>
-                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>{method}</li>
-              </>
-          )}
-        </ul>
-        <ul>Root
-          <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>iOS: [{rootSelector.ios}]</li>
-          <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}>Android: [{rootSelector.android}]</li>
-        </ul>
-      </div>
-      <div>
-        <ul style={{ paddingLeft: '10px'}}>
-          {showChildren && children.map(
-            (child) =>
-              <>
-                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}> {child.name}</li>
-                <li style={{ listStyleType: 'none', marginBottom: '5px', paddingLeft: '10px', fontSize: '15px' }}> Methods: [{child.methods.join(' ')}]</li>
-              </>
-          )}
-        </ul>
-      </div>
-    </>
-  );
 }
