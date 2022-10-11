@@ -38,13 +38,14 @@ export default class PageObjectTree extends Component {
   }
 
   handleSubmit (event) {
-    const { inspectPageObject } = this.props;
+    const { inspectPageObject, resetSearchForPORootElement } = this.props;
     inspectPageObject(this.state.package, this.state.version, this.state.module);
+    resetSearchForPORootElement();
     event.preventDefault();
   }
 
   handleFindPO (event) {
-    const {driver, pageObjectTreeData, searchForPORootElement } = this.props;
+    const {driver, pageObjectTreeData, resetSearchForPORootElement, searchForPORootElement } = this.props;
     const {isIOS, isAndroid} = driver.client;
     const strategyMap = {
       'accessid': 'accessibility id',
@@ -55,6 +56,8 @@ export default class PageObjectTree extends Component {
       'uiautomator': '-android uiautomator',
       'classchain': '-ios class chain',
     };
+
+    resetSearchForPORootElement();
 
     for (let po of pageObjectTreeData) {
       let t = strategyMap[po.children.rootSelector.type];

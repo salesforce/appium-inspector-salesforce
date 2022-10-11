@@ -4,15 +4,19 @@ import { connect } from 'react-redux';
 function Tree (props) {
     
     if (Array.isArray(props.currentPO) && props.currentPO.length > 0) {
-        let currentPO = props.currentPO[props.currentPO.length - 1];
-        let filteredPO = props.treeData.filter((po) => po.root.includes(currentPO));
+        let selectedPO = props.treeData.filter((po) => props.currentPO.includes(po.root));
+        let remainingPO = props.treeData.filter((po) => !props.currentPO.includes(po.root));
+        
         return (
             <ul>
-                <TreeNode node={filteredPO[0]} curPO={currentPO} />
+                {   
+                    selectedPO.map((po) => (
+                        <TreeNode node={po} selected={true} />
+                    ))}
                 <hr></hr>
                 {
-                    props.treeData.map((po) => (
-                        <TreeNode node={po} curPO={currentPO} />
+                    remainingPO.map((po) => (
+                        <TreeNode node={po} selected={false} />
                     ))}
             </ul>
         );
@@ -22,7 +26,7 @@ function Tree (props) {
             <ul>
                 {
                     props.treeData.map((po) => (
-                        <TreeNode node={po} curPO={currentPO} />
+                        <TreeNode node={po} selected={false} />
                     ))}
             </ul>
         );
@@ -36,7 +40,7 @@ const mapStateToProps = (state) => ({
 
 export default connect(mapStateToProps)(Tree);
 
-function TreeNode({ node, curPO }) {
+function TreeNode({ node, selected }) {
     const label = node.root;
     const methods = node.children.methods;
     const children = node.children.children;
@@ -51,7 +55,7 @@ function TreeNode({ node, curPO }) {
     return (
         <>
             <div onClick={handleClick} style={{ marginBottom: '10px', marginTop: '10px', fontSize: '20px' }}>
-                <li style={{ backgroundColor: label == curPO ? 'powderblue' : 'transparent' }}>{label}</li>
+                <li style={{ backgroundColor: selected ? 'powderblue' : 'transparent' }}>{label}</li>
                 <ul>Methods
                     {methods.map(
                         (method) =>

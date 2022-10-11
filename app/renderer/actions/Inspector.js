@@ -431,9 +431,16 @@ export function searchForElement (strategy, selector) {
   };
 }
 
+
+export function resetSearchForPORootElement () {
+  return (dispatch) => {
+    dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
+  };
+}
+
 export function searchForPORootElement (strategy, selector, po) {
   return async (dispatch, getState) => {
-    dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
+    //dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
     try {
       const callAction = callClientMethod({strategy, selector, fetchArray: true});
       let {elements, variableName} = await callAction(dispatch, getState);

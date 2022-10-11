@@ -326,13 +326,14 @@ export default function inspector (state = INITIAL_STATE, action) {
 
     case SEARCHING_FOR_ROOT_ELEMENTS:
       return {
-        ...state
+        ...state,
+        locatedRootElements: []
       };
 
     case SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED:
       return {
         ...state,
-        locatedRootElements: action.elements,
+        locatedRootElements: state.locatedRootElements.concat(action.elements.slice(-1)),
       };
 
     case GET_FIND_ELEMENTS_TIMES:
