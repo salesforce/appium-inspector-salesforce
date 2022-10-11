@@ -350,5 +350,6 @@
   "utamPageObjectPackageName": "Page Object Package Name",
   "utamPageObjectPackageVersion": "Page Object Package Version",
   "utamPageObjectModuleName": "Page Object Module Name",
-  "startInspect": "Start Inspect"
+  "startInspect": "Start Inspect",
+  "findCurrentPO": "Find Current PO"
 }
