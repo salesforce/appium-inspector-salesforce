@@ -38,18 +38,17 @@ export default class PageObjectTree extends Component {
   }
 
   handleSubmit (event) {
-    const { inspectPageObject, resetSearchForPORootElement } = this.props;
-    inspectPageObject(this.state.package, this.state.version, this.state.module);
-    resetSearchForPORootElement();
+    const { driver, inspectPageObject, resetSearchForPOElements } = this.props;
+    const { isIOS } = driver.client;
+    inspectPageObject(this.state.package, this.state.version, this.state.module, isIOS);
+    resetSearchForPOElements();
     event.preventDefault();
   }
 
   handleFindPO (event) {
-    const {driver, pageObjectTreeData, resetSearchForPORootElement, searchForPORootElement } = this.props;
-    const {isIOS, isAndroid} = driver.client;
+    const { pageObjectTreeData, resetSearchForPOElements, searchForPOElements } = this.props;
     const strategyMap = {
       'accessid': 'accessibility id',
-      'css': 'css',
       'id': 'id',
       'name': 'name',
       'className': 'class name',
@@ -57,25 +56,13 @@ export default class PageObjectTree extends Component {
       'classchain': '-ios class chain',
     };
 
-    resetSearchForPORootElement();
+    resetSearchForPOElements();
 
     for (let po of pageObjectTreeData) {
-      let t = strategyMap[po.children.rootSelector.type];
-
-      let id = isIOS ? po.children.rootSelector.ios : po.children.rootSelector.android;
-      if (isIOS) {
-        if (t.includes('automator')) {
-          continue;
-        }
+      if (po.root !== true || !po.selector) {
+        continue;
       }
-
-      if (isAndroid) {
-        if (t.includes('classchain')) {
-          continue;
-        }
-      }
-
-      searchForPORootElement(t, id, po);
+      searchForPOElements(po, strategyMap);
     }
 
     event.preventDefault();
@@ -142,19 +129,17 @@ export default class PageObjectTree extends Component {
 }
 
 
-export async function buildTreeData (packageName, packageVersion, moduleName) {
+export async function buildTreeData (packageName, packageVersion, moduleName, isIOS) {
   const util = require('util');
   const exec = util.promisify(require('child_process').exec);
   if (packageName.size !== 0 && packageVersion.size !== 0 && moduleName.size !== 0) {
     await exec(`npm install ${packageName}@${packageVersion}`);
     const appDir = process.cwd();
     const packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
-    const poPackageParser = new PageObjectPacakgeParser(packageDir);
-    // Twice build will take care there is no root Page Object for non-root Page Object
-    // When the target root Page Object not build up yet in the first build
+    const poPackageParser = new PageObjectPacakgeParser(packageDir, isIOS);
     poPackageParser.buildTreeMap();
-    poPackageParser.buildTreeMap();
+
     const treeMap = poPackageParser.getMap();
-    return Array.from(treeMap, ([root, children]) => ({ root, children }));
+    return Array.from(treeMap, ([name, children]) => (children));
   }
 }

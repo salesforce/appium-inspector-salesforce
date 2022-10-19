@@ -432,23 +432,46 @@ export function searchForElement (strategy, selector) {
 }
 
 
-export function resetSearchForPORootElement () {
+export function resetSearchForPOElements () {
   return (dispatch) => {
     dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
   };
 }
 
-export function searchForPORootElement (strategy, selector, po) {
+export function searchForPOElements (po, strategyMap) {
+  const [type, selector] = Object.entries(po.selector)[0];
+  let strategy = strategyMap[type];
+
   return async (dispatch, getState) => {
     try {
       const callAction = callClientMethod({strategy, selector, fetchArray: true});
-      let {elements, variableName} = await callAction(dispatch, getState);
-      const findAction = findAndAssign(strategy, selector, variableName, true);
-      findAction(dispatch, getState);
-      elements = elements.map((el) => el.id);
+      let {elements} = await callAction(dispatch, getState);
       if (elements.length > 0) {
-        elements.push(po.root);
-        dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED, elements});
+        let passed = true;
+        if (po.elements) {
+          let po_elements = po.elements;
+          const cnt = po_elements.length;
+          if (cnt > 0) {
+            for (let i = 0; i < cnt; i++) {
+              const pe = po_elements[i];
+              const [type, selector] = Object.entries(pe.selector)[0];
+              const strategy = strategyMap[type];
+              const callAction = callClientMethod({strategy, selector, fetchArray: true});
+              let {elements} = await callAction(dispatch, getState);
+              if (elements && elements.length > 0) {
+                continue;
+              }
+
+              passed = false;
+              break;
+            }
+          }
+        }
+
+        if (passed) {
+          elements.push(po.name);
+          dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED, elements});
+        }
       }
     } catch (error) {
       showError(error, 10);
@@ -874,11 +897,11 @@ export function tapTickCoordinates (x, y) {
   };
 }
 
-export function inspectPageObject (packageName, packageVersion, moduleName) {
+export function inspectPageObject (packageName, packageVersion, moduleName, isIOS) {
   return async (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(packageName, packageVersion, moduleName);
+      const treeData = await buildTreeData(packageName, packageVersion, moduleName, isIOS);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (ex) {
       dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});
