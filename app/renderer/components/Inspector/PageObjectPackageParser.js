@@ -66,12 +66,7 @@ export default class PageObjectPackageParser {
   buildTreeMapFromFile (file, filePath) {
     if (file.includes(UTAM_EXT)) {
       let [pageObjectName] = basename(filePath).split('.');
-      const sourceText = readFileSync(filePath, 'utf8');
-      let temp = JSON.parse(sourceText);
-      if (!temp.interface && !temp.implements) {
-        // Skip if not an interface file or implement file
-        return;
-      }
+
       if (pageObjectName.endsWith('Android')) {
         if (this.isIOS) {
           // Skip android file processing
@@ -84,6 +79,13 @@ export default class PageObjectPackageParser {
           return;
         }
         pageObjectName = pageObjectName.slice(0, -3);
+      }
+
+      const sourceText = readFileSync(filePath, 'utf8');
+      let temp = JSON.parse(sourceText);
+      if (!temp.interface && !temp.implements) {
+        // Skip if not an interface file nor implement file
+        return;
       }
 
       let po = this.treeMap.get(pageObjectName);

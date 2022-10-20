@@ -450,9 +450,7 @@ export function searchForPOElements (po, strategyMap) {
         let passed = true;
         if (po.elements && po.elements.length > 0) {
           let po_elements = po.elements;
-          const cnt = po_elements.length;
-          for (let i = 0; i < cnt; i++) {
-            const pe = po_elements[i];
+          for (let pe of po_elements) {
             const [type, selector] = Object.entries(pe.selector)[0];
             const strategy = strategyMap[type];
             const callAction = callClientMethod({strategy, selector, fetchArray: true});

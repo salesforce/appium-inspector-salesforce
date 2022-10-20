@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { JSONTree } from 'react-json-tree';
 
-function Tree(props) {
+function Tree (props) {
     let mapPONode = (po) => {
         let newPO = {};
         newPO[po.name] = {};
