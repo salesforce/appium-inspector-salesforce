@@ -49,9 +49,6 @@ export default class PageObjectTree extends Component {
     const { pageObjectTreeData, resetSearchForPOElements, searchForPOElements } = this.props;
     const strategyMap = {
       'accessid': 'accessibility id',
-      'id': 'id',
-      'name': 'name',
-      'className': 'class name',
       'uiautomator': '-android uiautomator',
       'classchain': '-ios class chain',
     };

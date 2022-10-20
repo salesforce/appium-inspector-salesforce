@@ -35,18 +35,23 @@ export default class PageObjectPackageParser {
 
       for (let methodName of Object.keys(po.methods)) {
         let method = po.methods[methodName];
+        // Check if the return type is a PO
         if (method.returnType && _.isString(method.returnType) && method.returnType.includes('/')) {
           let childName = method.returnType.split('/').pop();
           let childPO = this.treeMap.get(childName);
           if (childPO.methods) {
+            // Update the returnType of the method as it is a PO
             method.returnType = {name: childName, methods: {}};
             for (let childMethodName of Object.keys(childPO.methods)) {
               method.returnType.methods[childMethodName] = {};
+
+              // Populate the list of arguments of the method like (a, b, c)
               let arglist = '()';
               if (childPO.methods[childMethodName].args) {
                 method.returnType.methods[childMethodName].args = childPO.methods[childMethodName].args;
                 arglist = '(' + childPO.methods[childMethodName].args.map((a) => a.name).join(',') + ')';
               }
+
               method.returnType.methods[childMethodName].Java_Code = method.Java_Code + '.' + childMethodName + arglist;
               method.returnType.methods[childMethodName].JS_Code = method.JS_Code + '.' + childMethodName + arglist;
             }
@@ -55,7 +60,6 @@ export default class PageObjectPackageParser {
       }
       this.treeMap.set(poName, po);
     }
-
   }
 
   // Build the tree map from Page Object json file
@@ -65,15 +69,18 @@ export default class PageObjectPackageParser {
       const sourceText = readFileSync(filePath, 'utf8');
       let temp = JSON.parse(sourceText);
       if (!temp.interface && !temp.implements) {
+        // Skip if not an interface file or implement file
         return;
       }
       if (pageObjectName.endsWith('Android')) {
         if (this.isIOS) {
+          // Skip android file processing
           return;
         }
         pageObjectName = pageObjectName.slice(0, -7);
       } else if (pageObjectName.endsWith('iOS')) {
         if (!this.isIOS) {
+          // Skip ios file processing
           return;
         }
         pageObjectName = pageObjectName.slice(0, -3);
@@ -84,10 +91,12 @@ export default class PageObjectPackageParser {
         po = {name: pageObjectName};
       }
 
+      // this is a root PO
       if (temp.root === true) {
         po.root = true;
       }
 
+      // handle implements (android/ios) file
       if (temp.implements) {
         if (temp.elements) {
           po.elements = temp.elements;
@@ -97,19 +106,24 @@ export default class PageObjectPackageParser {
         }
       }
 
+      // handle interface file
       if (temp.interface) {
         if (!po.methods && temp.methods) {
           po.methods = {};
 
           for (let method of temp.methods) {
             po.methods[method.name] = {};
+
+            // Populate the list of arguments of the method like (a, b, c)
             let arglist = '()';
             if (method.args) {
               po.methods[method.name].args = method.args;
               arglist = '(' + po.methods[method.name].args.map((a) => a.name).join(',') + ')';
             }
+
             po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist;
             po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist;
+
             if (method.returnType) {
               po.methods[method.name].returnType = method.returnType;
             }

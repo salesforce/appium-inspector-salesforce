@@ -448,23 +448,21 @@ export function searchForPOElements (po, strategyMap) {
       let {elements} = await callAction(dispatch, getState);
       if (elements.length > 0) {
         let passed = true;
-        if (po.elements) {
+        if (po.elements && po.elements.length > 0) {
           let po_elements = po.elements;
           const cnt = po_elements.length;
-          if (cnt > 0) {
-            for (let i = 0; i < cnt; i++) {
-              const pe = po_elements[i];
-              const [type, selector] = Object.entries(pe.selector)[0];
-              const strategy = strategyMap[type];
-              const callAction = callClientMethod({strategy, selector, fetchArray: true});
-              let {elements} = await callAction(dispatch, getState);
-              if (elements && elements.length > 0) {
-                continue;
-              }
-
-              passed = false;
-              break;
+          for (let i = 0; i < cnt; i++) {
+            const pe = po_elements[i];
+            const [type, selector] = Object.entries(pe.selector)[0];
+            const strategy = strategyMap[type];
+            const callAction = callClientMethod({strategy, selector, fetchArray: true});
+            let {elements} = await callAction(dispatch, getState);
+            if (elements && elements.length > 0) {
+              continue;
             }
+
+            passed = false;
+            break;
           }
         }
 
