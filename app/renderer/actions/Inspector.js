@@ -440,27 +440,23 @@ export function resetSearchForPOElements () {
 
 export function searchForPOElements (po, strategyMap) {
   const [type, selector] = Object.entries(po.selector)[0];
-  let strategy = strategyMap[type];
-
   return async (dispatch, getState) => {
     try {
-      const callAction = callClientMethod({strategy, selector, fetchArray: true});
+      // search root element
+      const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
       let {elements} = await callAction(dispatch, getState);
       if (elements.length > 0) {
         let passed = true;
         if (po.elements && po.elements.length > 0) {
-          let po_elements = po.elements;
-          for (let pe of po_elements) {
+          // search each element
+          for (let pe of po.elements) {
             const [type, selector] = Object.entries(pe.selector)[0];
-            const strategy = strategyMap[type];
-            const callAction = callClientMethod({strategy, selector, fetchArray: true});
+            const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
             let {elements} = await callAction(dispatch, getState);
-            if (elements && elements.length > 0) {
-              continue;
+            if (!elements || elements.length === 0) {
+              passed = false;
+              break;
             }
-
-            passed = false;
-            break;
           }
         }
 

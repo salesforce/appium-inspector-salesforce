@@ -88,10 +88,7 @@ export default class PageObjectPackageParser {
         return;
       }
 
-      let po = this.treeMap.get(pageObjectName);
-      if (!po) {
-        po = {name: pageObjectName};
-      }
+      let po = this.treeMap.get(pageObjectName) || {name: pageObjectName};
 
       // this is a root PO
       if (temp.root === true) {
