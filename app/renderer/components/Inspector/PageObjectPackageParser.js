@@ -105,27 +105,25 @@ export default class PageObjectPackageParser {
         }
       }
 
-      // handle interface file
-      if (temp.interface) {
-        if (!po.methods && temp.methods) {
-          po.methods = {};
+      // handle methods in interface file
+      if (temp.interface && temp.methods) {
+        po.methods = {};
 
-          for (let method of temp.methods) {
-            po.methods[method.name] = {};
+        for (let method of temp.methods) {
+          po.methods[method.name] = {};
 
-            // Populate the list of arguments of the method like (a, b, c)
-            let arglist = '()';
-            if (method.args) {
-              po.methods[method.name].args = method.args;
-              arglist = '(' + po.methods[method.name].args.map((a) => a.name).join(',') + ')';
-            }
+          // Populate the list of arguments of the method like (a, b, c)
+          let arglist = '()';
+          if (method.args) {
+            po.methods[method.name].args = method.args;
+            arglist = '(' + po.methods[method.name].args.map((a) => a.name).join(',') + ')';
+          }
 
-            po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist;
-            po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist;
+          po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist;
+          po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist;
 
-            if (method.returnType) {
-              po.methods[method.name].returnType = method.returnType;
-            }
+          if (method.returnType) {
+            po.methods[method.name].returnType = method.returnType;
           }
         }
       }
