@@ -1,4 +1,5 @@
 import { lstatSync, readdirSync, readFileSync } from 'fs';
+import { isCustomType } from '@utam/compiler/build/utils/element-types';
 import { join, basename } from 'path';
 import { UTAM_EXT } from 'utam/build/utils/constants';
 import { _ } from 'lodash';
@@ -36,7 +37,7 @@ export default class PageObjectPackageParser {
       for (let methodName of Object.keys(po.methods)) {
         let method = po.methods[methodName];
         // Check if the return type is a PO
-        if (method.returnType && _.isString(method.returnType) && method.returnType.includes('/')) {
+        if (method.returnType && _.isString(method.returnType) && isCustomType(method.returnType)) {
           let childName = method.returnType.split('/').pop();
           let childPO = this.treeMap.get(childName);
           if (childPO.methods) {
@@ -52,8 +53,8 @@ export default class PageObjectPackageParser {
                 arglist = '(' + childPO.methods[childMethodName].args.map((a) => a.name).join(',') + ')';
               }
 
-              method.returnType.methods[childMethodName].Java_Code = method.Java_Code + '.' + childMethodName + arglist;
-              method.returnType.methods[childMethodName].JS_Code = method.JS_Code + '.' + childMethodName + arglist;
+              method.returnType.methods[childMethodName].Java_Code = method.Java_Code + '.' + childMethodName + arglist + ';';
+              method.returnType.methods[childMethodName].JS_Code = method.JS_Code + '.' + childMethodName + arglist + ';';
             }
           }
         }
@@ -66,7 +67,6 @@ export default class PageObjectPackageParser {
   buildTreeMapFromFile (file, filePath) {
     if (file.includes(UTAM_EXT)) {
       let [pageObjectName] = basename(filePath).split('.');
-
       if (pageObjectName.endsWith('Android')) {
         if (this.isIOS) {
           // Skip android file processing
@@ -119,8 +119,8 @@ export default class PageObjectPackageParser {
             arglist = '(' + po.methods[method.name].args.map((a) => a.name).join(',') + ')';
           }
 
-          po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist;
-          po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist;
+          po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist + ';';
+          po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist + ';';
 
           if (method.returnType) {
             po.methods[method.name].returnType = method.returnType;
