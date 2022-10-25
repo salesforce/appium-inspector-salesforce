@@ -38,28 +38,28 @@ export default class PageObjectTree extends Component {
   }
 
   handleSubmit (event) {
-    const { driver, inspectPageObject, resetSearchForPOElements } = this.props;
+    const { driver, inspectPageObject, resetSearchForPORootElement } = this.props;
     const { isIOS } = driver.client;
     inspectPageObject(this.state.package, this.state.version, this.state.module, isIOS);
-    resetSearchForPOElements();
+    resetSearchForPORootElement();
     event.preventDefault();
   }
 
   handleFindPO (event) {
-    const { pageObjectTreeData, resetSearchForPOElements, searchForPOElements } = this.props;
+    const { pageObjectTreeData, resetSearchForPORootElement, searchForPORootElement } = this.props;
     const strategyMap = {
       'accessid': 'accessibility id',
       'uiautomator': '-android uiautomator',
       'classchain': '-ios class chain',
     };
 
-    resetSearchForPOElements();
+    resetSearchForPORootElement();
 
     for (let po of pageObjectTreeData) {
       if (po.root !== true || !po.selector) {
         continue;
       }
-      searchForPOElements(po, strategyMap);
+      searchForPORootElement(po, strategyMap);
     }
 
     event.preventDefault();

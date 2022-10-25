@@ -51,8 +51,8 @@ export const SET_LOCATOR_TEST_STRATEGY = 'SET_LOCATOR_TEST_STRATEGY';
 export const SET_LOCATOR_TEST_VALUE = 'SET_LOCATOR_TEST_VALUE';
 export const SEARCHING_FOR_ELEMENTS = 'SEARCHING_FOR_ELEMENTS';
 export const SEARCHING_FOR_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ELEMENTS_COMPLETED';
-export const SEARCHING_FOR_ROOT_ELEMENTS = 'SEARCHING_FOR_ROOT_ELEMENTS';
-export const SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED';
+export const SEARCHING_FOR_ROOT_ELEMENT = 'SEARCHING_FOR_ROOT_ELEMENT';
+export const SEARCHING_FOR_ROOT_ELEMENT_COMPLETED = 'SEARCHING_FOR_ROOT_ELEMENT_COMPLETED';
 export const GET_FIND_ELEMENTS_TIMES = 'GET_FIND_ELEMENTS_TIMES';
 export const GET_FIND_ELEMENTS_TIMES_COMPLETED = 'GET_FIND_ELEMENTS_TIMES_COMPLETED';
 export const SET_LOCATOR_TEST_ELEMENT = 'SET_LOCATOR_TEST_ELEMENT';
@@ -431,14 +431,13 @@ export function searchForElement (strategy, selector) {
   };
 }
 
-
-export function resetSearchForPOElements () {
+export function resetSearchForPORootElement () {
   return (dispatch) => {
-    dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
+    dispatch({type: SEARCHING_FOR_ROOT_ELEMENT});
   };
 }
 
-export function searchForPOElements (po, strategyMap) {
+export function searchForPORootElement (po, strategyMap) {
   const [type, selector] = Object.entries(po.selector)[0];
   return async (dispatch, getState) => {
     try {
@@ -446,24 +445,8 @@ export function searchForPOElements (po, strategyMap) {
       const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
       let {elements} = await callAction(dispatch, getState);
       if (elements.length > 0) {
-        let passed = true;
-        if (po.elements && po.elements.length > 0) {
-          // search each element
-          for (let pe of po.elements) {
-            const [type, selector] = Object.entries(pe.selector)[0];
-            const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
-            let {elements} = await callAction(dispatch, getState);
-            if (!elements || elements.length === 0) {
-              passed = false;
-              break;
-            }
-          }
-        }
-
-        if (passed) {
-          elements.push(po.name);
-          dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED, elements});
-        }
+        elements.push(po.name);
+        dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED, elements});
       }
     } catch (error) {
       showError(error, 10);
