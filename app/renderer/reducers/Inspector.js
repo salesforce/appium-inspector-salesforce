@@ -333,7 +333,7 @@ export default function inspector (state = INITIAL_STATE, action) {
     case SEARCHING_FOR_ROOT_ELEMENT_COMPLETED:
       return {
         ...state,
-        locatedRootElements: state.locatedRootElements.concat(action.elements.slice(-1)),
+        locatedRootElements: action.elements
       };
 
     case GET_FIND_ELEMENTS_TIMES:

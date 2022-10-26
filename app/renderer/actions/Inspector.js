@@ -437,18 +437,33 @@ export function resetSearchForPORootElement () {
   };
 }
 
-export function searchForPORootElement (po, strategyMap) {
-  const [type, selector] = Object.entries(po.selector)[0];
+export function searchForPORootElements (treeData) {
+  const strategyMap = {
+    'accessid': 'accessibility id',
+    'uiautomator': '-android uiautomator',
+    'classchain': '-ios class chain',
+  };
   return async (dispatch, getState) => {
     try {
-      // search root element
-      const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
-      let {elements} = await callAction(dispatch, getState);
-      if (elements.length > 0) {
-        elements.push(po.name);
-        dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED, elements});
+      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT});
+      dispatch({type: START_PAGEOBJECT_INSPECTING});
+      const selectedPOs = [];
+      for (let po of treeData) {
+        if (!po.root || !po.selector) {
+          continue;
+        }
+        const [type, selector] = Object.entries(po.selector)[0];
+        // search root element
+        const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
+        let {elements} = await callAction(dispatch, getState);
+        if (elements.length > 0) {
+          selectedPOs.push(po.name);
+        }
       }
+      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED, elements: selectedPOs});
+      dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (error) {
+      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED});
       showError(error, 10);
     }
   };

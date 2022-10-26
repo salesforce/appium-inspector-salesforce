@@ -52,8 +52,8 @@ export default class PageObjectPackageParser {
                 arglist = '(' + childPO.methods[childMethodName].args.map((a) => a.name).join(',') + ')';
               }
 
-              method.returnType.methods[childMethodName].Java_Code = method.Java_Code + '.' + childMethodName + arglist + ';';
-              method.returnType.methods[childMethodName].JS_Code = method.JS_Code + '.' + childMethodName + arglist + ';';
+              method.returnType.methods[childMethodName].Java_Code = method.Java_Code.slice(0, -1) + '.' + childMethodName + arglist + ';';
+              method.returnType.methods[childMethodName].JS_Code = method.JS_Code.slice(0, -1) + '.' + childMethodName + arglist + ';';
             }
           }
         }

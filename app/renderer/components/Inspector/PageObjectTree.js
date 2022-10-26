@@ -46,22 +46,8 @@ export default class PageObjectTree extends Component {
   }
 
   handleFindPO (event) {
-    const { pageObjectTreeData, resetSearchForPORootElement, searchForPORootElement } = this.props;
-    const strategyMap = {
-      'accessid': 'accessibility id',
-      'uiautomator': '-android uiautomator',
-      'classchain': '-ios class chain',
-    };
-
-    resetSearchForPORootElement();
-
-    for (let po of pageObjectTreeData) {
-      if (po.root !== true || !po.selector) {
-        continue;
-      }
-      searchForPORootElement(po, strategyMap);
-    }
-
+    const { pageObjectTreeData, searchForPORootElements} = this.props;
+    searchForPORootElements(pageObjectTreeData);
     event.preventDefault();
   }
 
