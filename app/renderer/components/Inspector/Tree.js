@@ -6,9 +6,6 @@ function Tree (props) {
     let mapPONode = (po) => {
         let newPO = {};
         newPO[po.name] = {};
-        if (po.root) {
-            newPO[po.name].root = po.root;
-        }
         if (po.selector) {
             newPO[po.name].selector = po.selector;
         }
@@ -23,7 +20,7 @@ function Tree (props) {
         );
     }
 
-    let selectedPO = props.treeData;
+    let selectedPO = props.treeData.filter((po) => po.root === true);
     if (Array.isArray(props.currentPO) && props.currentPO.length > 0) {
         selectedPO = props.treeData.filter((po) => props.currentPO.includes(po.name));
     }

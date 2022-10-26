@@ -37,12 +37,11 @@ export default class PageObjectPackageParser {
       for (let methodName of Object.keys(po.methods)) {
         let method = po.methods[methodName];
         // Check if the return type is a PO
-        if (method.returnType && _.isString(method.returnType) && isCustomType(method.returnType)) {
-          let childName = method.returnType.split('/').pop();
-          let childPO = this.treeMap.get(childName);
+        if (method.returnType && _.isString(method.returnType)) {
+          let childPO = this.treeMap.get(method.returnType);
           if (childPO.methods) {
             // Update the returnType of the method as it is a PO
-            method.returnType = {name: childName, methods: {}};
+            method.returnType = {name: method.returnType, methods: {}};
             for (let childMethodName of Object.keys(childPO.methods)) {
               method.returnType.methods[childMethodName] = {};
 
@@ -122,8 +121,8 @@ export default class PageObjectPackageParser {
           po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist + ';';
           po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist + ';';
 
-          if (method.returnType) {
-            po.methods[method.name].returnType = method.returnType;
+          if (method.returnType && _.isString(method.returnType) && isCustomType(method.returnType)) {
+            po.methods[method.name].returnType = method.returnType.split('/').pop();
           }
         }
       }
