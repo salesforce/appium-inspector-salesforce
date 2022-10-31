@@ -38,16 +38,16 @@ export default class PageObjectTree extends Component {
   }
 
   handleSubmit (event) {
-    const { driver, inspectPageObject, resetSearchForPORootElement } = this.props;
+    const { driver, inspectPageObject, resetSearchForCurrentPOs } = this.props;
     const { isIOS } = driver.client;
     inspectPageObject(this.state.package, this.state.version, this.state.module, isIOS);
-    resetSearchForPORootElement();
+    resetSearchForCurrentPOs();
     event.preventDefault();
   }
 
   handleFindPO (event) {
-    const { pageObjectTreeData, searchForPORootElements} = this.props;
-    searchForPORootElements(pageObjectTreeData);
+    const { pageObjectTreeData, searchForCurrentPOs} = this.props;
+    searchForCurrentPOs(pageObjectTreeData);
     event.preventDefault();
   }
 

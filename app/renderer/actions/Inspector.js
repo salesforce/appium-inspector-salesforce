@@ -51,8 +51,8 @@ export const SET_LOCATOR_TEST_STRATEGY = 'SET_LOCATOR_TEST_STRATEGY';
 export const SET_LOCATOR_TEST_VALUE = 'SET_LOCATOR_TEST_VALUE';
 export const SEARCHING_FOR_ELEMENTS = 'SEARCHING_FOR_ELEMENTS';
 export const SEARCHING_FOR_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ELEMENTS_COMPLETED';
-export const SEARCHING_FOR_ROOT_ELEMENT = 'SEARCHING_FOR_ROOT_ELEMENT';
-export const SEARCHING_FOR_ROOT_ELEMENT_COMPLETED = 'SEARCHING_FOR_ROOT_ELEMENT_COMPLETED';
+export const SEARCHING_FOR_CURRENT_PO = 'SEARCHING_FOR_CURRENT_PO';
+export const SEARCHING_FOR_CURRENT_PO_COMPLETED = 'SEARCHING_FOR_CURRENT_PO_COMPLETED';
 export const GET_FIND_ELEMENTS_TIMES = 'GET_FIND_ELEMENTS_TIMES';
 export const GET_FIND_ELEMENTS_TIMES_COMPLETED = 'GET_FIND_ELEMENTS_TIMES_COMPLETED';
 export const SET_LOCATOR_TEST_ELEMENT = 'SET_LOCATOR_TEST_ELEMENT';
@@ -431,13 +431,13 @@ export function searchForElement (strategy, selector) {
   };
 }
 
-export function resetSearchForPORootElement () {
+export function resetSearchForCurrentPOs () {
   return (dispatch) => {
-    dispatch({type: SEARCHING_FOR_ROOT_ELEMENT});
+    dispatch({type: SEARCHING_FOR_CURRENT_PO});
   };
 }
 
-export function searchForPORootElements (treeData) {
+export function searchForCurrentPOs (treeData) {
   const strategyMap = {
     'accessid': 'accessibility id',
     'uiautomator': '-android uiautomator',
@@ -445,7 +445,7 @@ export function searchForPORootElements (treeData) {
   };
   return async (dispatch, getState) => {
     try {
-      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT});
+      dispatch({type: SEARCHING_FOR_CURRENT_PO});
       dispatch({type: START_PAGEOBJECT_INSPECTING});
       const selectedPOs = [];
       for (let po of treeData) {
@@ -460,10 +460,10 @@ export function searchForPORootElements (treeData) {
           selectedPOs.push(po.name);
         }
       }
-      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED, elements: selectedPOs});
+      dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED, elements: selectedPOs});
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (error) {
-      dispatch({type: SEARCHING_FOR_ROOT_ELEMENT_COMPLETED});
+      dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED});
       showError(error, 10);
     }
   };
