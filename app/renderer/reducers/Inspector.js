@@ -7,7 +7,7 @@ import { SET_SOURCE_AND_SCREENSHOT, QUIT_SESSION_REQUESTED, QUIT_SESSION_DONE,
          SET_ACTION_FRAMEWORK, RECORD_ACTION, CLOSE_RECORDER, SET_SHOW_BOILERPLATE, SET_SESSION_DETAILS,
          SHOW_LOCATOR_TEST_MODAL, HIDE_LOCATOR_TEST_MODAL, SET_LOCATOR_TEST_STRATEGY, SET_LOCATOR_TEST_VALUE,
          SEARCHING_FOR_ELEMENTS, SEARCHING_FOR_ELEMENTS_COMPLETED, SET_LOCATOR_TEST_ELEMENT, CLEAR_SEARCH_RESULTS,
-         SEARCHING_FOR_ROOT_ELEMENTS, SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED,
+         SEARCHING_FOR_CURRENT_PO, SEARCHING_FOR_CURRENT_PO_COMPLETED,
          ADD_ASSIGNED_VAR_CACHE, CLEAR_ASSIGNED_VAR_CACHE, SET_SCREENSHOT_INTERACTION_MODE,
          SET_SWIPE_START, SET_SWIPE_END, CLEAR_SWIPE_ACTION, SET_SEARCHED_FOR_ELEMENT_BOUNDS, CLEAR_SEARCHED_FOR_ELEMENT_BOUNDS,
          PROMPT_KEEP_ALIVE, HIDE_PROMPT_KEEP_ALIVE, GET_FIND_ELEMENTS_TIMES, GET_FIND_ELEMENTS_TIMES_COMPLETED,
@@ -324,16 +324,16 @@ export default function inspector (state = INITIAL_STATE, action) {
         isSearchingForElements: false,
       };
 
-    case SEARCHING_FOR_ROOT_ELEMENTS:
+    case SEARCHING_FOR_CURRENT_PO:
       return {
         ...state,
         locatedRootElements: []
       };
 
-    case SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED:
+    case SEARCHING_FOR_CURRENT_PO_COMPLETED:
       return {
         ...state,
-        locatedRootElements: state.locatedRootElements.concat(action.elements.slice(-1)),
+        locatedRootElements: action.elements
       };
 
     case GET_FIND_ELEMENTS_TIMES:
@@ -608,6 +608,8 @@ export default function inspector (state = INITIAL_STATE, action) {
     case START_PAGEOBJECT_INSPECTING:
       return {
         ...state,
+        pageObjectTreeData: [],
+        errorMsg: '',
         isPageObjectInspectInProgress: true,
       };
 

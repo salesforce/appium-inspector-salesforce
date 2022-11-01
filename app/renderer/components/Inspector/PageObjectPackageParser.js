@@ -1,15 +1,14 @@
 import { lstatSync, readdirSync, readFileSync } from 'fs';
-import { findNodeAtLocation, getNodeValue, parseTree } from 'jsonc-parser';
 import { isCustomType } from '@utam/compiler/build/utils/element-types';
 import { join, basename } from 'path';
 import { UTAM_EXT } from 'utam/build/utils/constants';
-import PageObjectTreeNode from '../Inspector/PageObjectTreeNode';
+import { _ } from 'lodash';
 
 export default class PageObjectPackageParser {
-  constructor (packagePath) {
+  constructor (packagePath, isIOS) {
+    this.isIOS = isIOS;
     this.packageDir = packagePath;
     this.treeMap = new Map();
-    this.orphans = [];
   }
 
   buildTreeMap () {
@@ -27,100 +26,106 @@ export default class PageObjectPackageParser {
         this.buildTreeMapFromFile(file, modulePath);
       }
     });
+
+    // Post processing to handle returntype of each method
+    for (let poName of this.treeMap.keys()) {
+      let po = this.treeMap.get(poName);
+      if (!po.methods) {
+        continue;
+      }
+
+      for (let methodName of Object.keys(po.methods)) {
+        let method = po.methods[methodName];
+        // Check if the return type is a PO
+        if (method.returnType && _.isString(method.returnType)) {
+          let childPO = this.treeMap.get(method.returnType);
+          if (childPO.methods) {
+            // Update the returnType of the method as it is a PO
+            method.returnType = {name: method.returnType, methods: {}};
+            for (let childMethodName of Object.keys(childPO.methods)) {
+              method.returnType.methods[childMethodName] = {};
+
+              // Populate the list of arguments of the method like (a, b, c)
+              let arglist = '()';
+              if (childPO.methods[childMethodName].args) {
+                method.returnType.methods[childMethodName].args = childPO.methods[childMethodName].args;
+                arglist = '(' + childPO.methods[childMethodName].args.map((a) => a.name).join(',') + ')';
+              }
+
+              method.returnType.methods[childMethodName].Java_Code = method.Java_Code.slice(0, -1) + '.' + childMethodName + arglist + ';';
+              method.returnType.methods[childMethodName].JS_Code = method.JS_Code.slice(0, -1) + '.' + childMethodName + arglist + ';';
+            }
+          }
+        }
+      }
+      this.treeMap.set(poName, po);
+    }
   }
 
   // Build the tree map from Page Object json file
   buildTreeMapFromFile (file, filePath) {
     if (file.includes(UTAM_EXT)) {
-      const [pageObjectName] = basename(filePath).split('.');
       const sourceText = readFileSync(filePath, 'utf8');
-      const rootNode = parseTree(sourceText, []);
-      const interfaceNode = findNodeAtLocation(rootNode, ['interface']);
-      const implNode = findNodeAtLocation(rootNode, ['implements']);
-      // Parse the interface files
-      if (interfaceNode !== undefined && interfaceNode.value === true) {
-        this.parseInterfaces(pageObjectName, rootNode);
-      } else if (implNode !== undefined && implNode.value.length !== 0) {
-        // Parse the implementation files
-        this.parseImpls(implNode.value.split('/').pop(), rootNode);
+      let temp = JSON.parse(sourceText);
+      if (!temp.interface && !temp.implements) {
+        // Skip if not an interface file nor implement file
+        return;
       }
-    }
-  }
 
-  parseInterfaces (pageObjectName, rootNode) {
-    const methods = [];
-    const children = [];
-    const rootSelector = {ios: '', android: ''};
+      let [pageObjectName] = basename(filePath).split('.');
+      if (temp.implements) {
+        let platform = temp.profile[0].platform[0];
 
-    const methodsNode = findNodeAtLocation(rootNode, ['methods']);
-    if (methodsNode && methodsNode.children) {
-      methodsNode.children.forEach((methodObjectNode) => {
-        // Get all methods info
-        const name = findNodeAtLocation(methodObjectNode, ['name']);
-        if (name && name.value.length !== 0) {
-          methods.push(name.value);
+        if (this.isIOS && platform.startsWith('android')) {
+          return;
+        }
+        if (!this.isIOS && platform.startsWith('ios')) {
+          return;
         }
 
-        // Get all children info
-        const returnTypeNode = findNodeAtLocation(methodObjectNode, ['returnType']);
-        if (returnTypeNode) {
-          const returnTypeNodeValue = getNodeValue(returnTypeNode);
-          if (isCustomType(returnTypeNodeValue)) {
-            const typeValue = returnTypeNodeValue.split('/').pop();
-            children.push(new PageObjectTreeNode(typeValue, rootSelector, methods, children));
+        pageObjectName = temp.implements.split('/').pop();
+      }
+
+      let po = this.treeMap.get(pageObjectName) || {name: pageObjectName};
+
+      // this is a root PO
+      if (temp.root === true) {
+        po.root = true;
+      }
+
+      // handle implements (android/ios) file
+      if (temp.implements) {
+        if (temp.elements) {
+          po.elements = temp.elements;
+        }
+        if (temp.selector) {
+          po.selector = temp.selector;
+        }
+      }
+
+      // handle methods in interface file
+      if (temp.interface && temp.methods) {
+        po.methods = {};
+
+        for (let method of temp.methods) {
+          po.methods[method.name] = {};
+
+          // Populate the list of arguments of the method like (a, b, c)
+          let arglist = '()';
+          if (method.args) {
+            po.methods[method.name].args = method.args;
+            arglist = '(' + po.methods[method.name].args.map((a) => a.name).join(',') + ')';
           }
-        }
-      });
-    }
 
-    // For root Page Object
-    const rootMarkerNode = findNodeAtLocation(rootNode, ['root']);
-    if (rootMarkerNode !== undefined && rootMarkerNode.value === true) {
-      const rootNode = new PageObjectTreeNode(pageObjectName, rootSelector, methods, children);
-      if (!this.treeMap.has(pageObjectName)) {
-        this.treeMap.set(pageObjectName, rootNode);
-      }
-    } else {
-      // For non-root Page Object
-      const childNode = new PageObjectTreeNode(pageObjectName, rootSelector, methods, children);
-      for (let [key, value] of this.treeMap) {
-        if (value.length !== 0) {
-          const existingChildren = value.children;
-          for (let i = 0; i < existingChildren.length; i++) {
-            if (existingChildren[i].name === pageObjectName) {
-              existingChildren[i] = childNode;
-              value.children = existingChildren;
-              this.treeMap.set(key, value);
-              // Get out from the inside for loop
-              i = existingChildren.length;
-            }
+          po.methods[method.name].Java_Code = 'loader.load(' + pageObjectName + '.class)' + '.' + method.name + arglist + ';';
+          po.methods[method.name].JS_Code = 'await utam.load(' + pageObjectName + ').' + method.name + arglist + ';';
+
+          if (method.returnType && _.isString(method.returnType) && isCustomType(method.returnType)) {
+            po.methods[method.name].returnType = method.returnType.split('/').pop();
           }
         }
       }
-    }
-  }
-
-  parseImpls (pageObjectName, rootNode) {
-    const rootMarkerNode = findNodeAtLocation(rootNode, ['root']);
-    if (rootMarkerNode !== undefined && rootMarkerNode.value === true) {
-      const rootSelectorNode = findNodeAtLocation(rootNode, ['selector']);
-      const profileNode = findNodeAtLocation(rootNode, ['profile']);
-      if (rootSelectorNode && profileNode.children && this.treeMap.has(pageObjectName)) {
-        const { methods, children, rootSelector } = this.treeMap.get(pageObjectName);
-        const platformNode = profileNode.children[0];
-        const platform = platformNode.children[0].children[1].children[0].value.split('_')[0].toLowerCase();
-        const selector = rootSelectorNode.children[0].children[1].value;
-        if (platform === 'ios') {
-          rootSelector.ios = selector;
-        } else if (platform === 'android') {
-          rootSelector.android = selector;
-        }
-
-        rootSelector.type = rootSelectorNode.children[0].children[0].value;
-
-        const node = new PageObjectTreeNode(pageObjectName, rootSelector, methods, children);
-        this.treeMap.set(pageObjectName, node);
-      }
+      this.treeMap.set(pageObjectName, po);
     }
   }
 

@@ -51,8 +51,8 @@ export const SET_LOCATOR_TEST_STRATEGY = 'SET_LOCATOR_TEST_STRATEGY';
 export const SET_LOCATOR_TEST_VALUE = 'SET_LOCATOR_TEST_VALUE';
 export const SEARCHING_FOR_ELEMENTS = 'SEARCHING_FOR_ELEMENTS';
 export const SEARCHING_FOR_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ELEMENTS_COMPLETED';
-export const SEARCHING_FOR_ROOT_ELEMENTS = 'SEARCHING_FOR_ROOT_ELEMENTS';
-export const SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED = 'SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED';
+export const SEARCHING_FOR_CURRENT_PO = 'SEARCHING_FOR_CURRENT_PO';
+export const SEARCHING_FOR_CURRENT_PO_COMPLETED = 'SEARCHING_FOR_CURRENT_PO_COMPLETED';
 export const GET_FIND_ELEMENTS_TIMES = 'GET_FIND_ELEMENTS_TIMES';
 export const GET_FIND_ELEMENTS_TIMES_COMPLETED = 'GET_FIND_ELEMENTS_TIMES_COMPLETED';
 export const SET_LOCATOR_TEST_ELEMENT = 'SET_LOCATOR_TEST_ELEMENT';
@@ -426,32 +426,67 @@ export function searchForElement (strategy, selector) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED, elements});
     } catch (error) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED});
-      showError(error, 10);
+      showError(error, null, 10);
     }
   };
 }
 
-
-export function resetSearchForPORootElement () {
+export function resetSearchForCurrentPOs () {
   return (dispatch) => {
-    dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS});
+    dispatch({type: SEARCHING_FOR_CURRENT_PO});
   };
 }
 
-export function searchForPORootElement (strategy, selector, po) {
+export function searchForCurrentPOs (treeData) {
+  const strategyMap = {
+    'accessid': 'accessibility id',
+    'uiautomator': '-android uiautomator',
+    'classchain': '-ios class chain',
+  };
   return async (dispatch, getState) => {
     try {
-      const callAction = callClientMethod({strategy, selector, fetchArray: true});
-      let {elements, variableName} = await callAction(dispatch, getState);
-      const findAction = findAndAssign(strategy, selector, variableName, true);
-      findAction(dispatch, getState);
-      elements = elements.map((el) => el.id);
-      if (elements.length > 0) {
-        elements.push(po.root);
-        dispatch({type: SEARCHING_FOR_ROOT_ELEMENTS_COMPLETED, elements});
+      dispatch({type: SEARCHING_FOR_CURRENT_PO});
+      dispatch({type: START_PAGEOBJECT_INSPECTING});
+      const selectedPOs = [];
+      for (let po of treeData) {
+        if (!po.root || !po.selector) {
+          continue;
+        }
+        const [type, selector] = Object.entries(po.selector)[0];
+        // search root element
+        const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
+        let {elements} = await callAction(dispatch, getState);
+        if (elements.length > 0) {
+          let matched = true;
+          if (typeof po.elements !== 'undefined') {
+            for (let element of po.elements) {
+              if (!element.nullable && typeof element.selector.args === 'undefined') {
+                const [type, selector] = Object.entries(element.selector)[0];
+                const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
+                let {elements} = await callAction(dispatch, getState);
+                if (elements.length > 0) {
+                  continue;
+                }
+                matched = false;
+                break;
+              }
+            }
+          }
+          if (matched) {
+            selectedPOs.push(po.name);
+          }
+        }
       }
+      if (selectedPOs.length > 0) {
+        dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED, elements: selectedPOs});
+      } else {
+        dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED});
+        showError(new Error('No matched PO found!'), null, 10);
+      }
+      dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (error) {
-      showError(error, 10);
+      dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED});
+      showError(error, null, 10);
     }
   };
 }
@@ -477,7 +512,7 @@ export function getFindElementsTimes (findDataSource) {
       });
     } catch (error) {
       dispatch({type: GET_FIND_ELEMENTS_TIMES_COMPLETED});
-      showError(error, 10);
+      showError(error, null, 10);
     }
   };
 }
@@ -874,11 +909,11 @@ export function tapTickCoordinates (x, y) {
   };
 }
 
-export function inspectPageObject (packageName, packageVersion, moduleName) {
+export function inspectPageObject (packageName, packageVersion, moduleName, isIOS) {
   return async (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(packageName, packageVersion, moduleName);
+      const treeData = await buildTreeData(packageName, packageVersion, moduleName, isIOS);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (ex) {
       dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});
