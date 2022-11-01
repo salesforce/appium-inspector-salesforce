@@ -457,7 +457,24 @@ export function searchForCurrentPOs (treeData) {
         const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
         let {elements} = await callAction(dispatch, getState);
         if (elements.length > 0) {
-          selectedPOs.push(po.name);
+          let matched = true;
+          if (typeof po.elements !== 'undefined') {
+            for (let element of po.elements) {
+              if (!element.nullable && typeof element.selector.args === 'undefined') {
+                const [type, selector] = Object.entries(element.selector)[0];
+                const callAction = callClientMethod({strategy: strategyMap[type], selector, fetchArray: true});
+                let {elements} = await callAction(dispatch, getState);
+                if (elements.length > 0) {
+                  continue;
+                }
+                matched = false;
+                break;
+              }
+            }
+          }
+          if (matched) {
+            selectedPOs.push(po.name);
+          }
         }
       }
       dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED, elements: selectedPOs});

@@ -608,6 +608,8 @@ export default function inspector (state = INITIAL_STATE, action) {
     case START_PAGEOBJECT_INSPECTING:
       return {
         ...state,
+        pageObjectTreeData: [],
+        errorMsg: '',
         isPageObjectInspectInProgress: true,
       };
 
