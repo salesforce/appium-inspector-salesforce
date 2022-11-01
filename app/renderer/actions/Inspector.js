@@ -426,7 +426,7 @@ export function searchForElement (strategy, selector) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED, elements});
     } catch (error) {
       dispatch({type: SEARCHING_FOR_ELEMENTS_COMPLETED});
-      showError(error, 10);
+      showError(error, null, 10);
     }
   };
 }
@@ -477,11 +477,16 @@ export function searchForCurrentPOs (treeData) {
           }
         }
       }
-      dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED, elements: selectedPOs});
+      if (selectedPOs.length > 0) {
+        dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED, elements: selectedPOs});
+      } else {
+        dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED});
+        showError(new Error('No matched PO found!'), null, 10);
+      }
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (error) {
       dispatch({type: SEARCHING_FOR_CURRENT_PO_COMPLETED});
-      showError(error, 10);
+      showError(error, null, 10);
     }
   };
 }
@@ -507,7 +512,7 @@ export function getFindElementsTimes (findDataSource) {
       });
     } catch (error) {
       dispatch({type: GET_FIND_ELEMENTS_TIMES_COMPLETED});
-      showError(error, 10);
+      showError(error, null, 10);
     }
   };
 }
