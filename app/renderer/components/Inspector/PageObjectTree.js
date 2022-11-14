@@ -15,14 +15,14 @@ export default class PageObjectTree extends Component {
       module: '',
       package: '',
       path: '',
-      version: '',
+      version: 'latest',
       text: ''
     };
 
     this.handleModuleChange = this.handleModuleChange.bind(this);
     this.handleNameChange = this.handleNameChange.bind(this);
-    this.handleVersionChange = this.handleVersionChange.bind(this);
     this.handlePathChange = this.handlePathChange.bind(this);
+    this.handleVersionTagChange = this.handleVersionTagChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleFindPO = this.handleFindPO.bind(this);
   }
@@ -35,7 +35,7 @@ export default class PageObjectTree extends Component {
     this.setState({package: event.target.value});
   }
 
-  handleVersionChange (event) {
+  handleVersionTagChange (event) {
     this.setState({version: event.target.value});
   }
 
@@ -48,8 +48,8 @@ export default class PageObjectTree extends Component {
     const { isIOS } = driver.client;
     inspectPageObject(
       this.state.package,
-      this.state.version,
       this.state.module,
+      this.state.version,
       this.state.path,
       isIOS);
     resetSearchForCurrentPOs();
@@ -98,9 +98,9 @@ export default class PageObjectTree extends Component {
                 <Input
                   type='text'
                   addonBefore={t('utamPageObjectPackageVersion')}
-                  placeholder='1.0.0'
+                  placeholder='latest'
                   value={this.state.version}
-                  onChange={this.handleVersionChange} />
+                  onChange={this.handleVersionTagChange} />
               </FormItem>
             </Col>
           </Row>
@@ -144,8 +144,8 @@ export default class PageObjectTree extends Component {
 
 export async function buildTreeData (
   packageName,
-  packageVersion,
   moduleName,
+  packageVersion,
   packagePath,
   isIOS) {
   const util = require('util');
@@ -154,8 +154,7 @@ export async function buildTreeData (
        packagePath.length !== 0) {
     let packageDir = '';
     if (packageName.length !== 0 && moduleName.length !== 0) {
-      const downloadVersion = packageVersion.length !== 0 ? packageVersion : 'latest';
-      await exec(`npm install ${packageName}@${downloadVersion}`);
+      await exec(`npm install ${packageName}@${packageVersion}`);
       const appDir = process.cwd();
       packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
     } else {

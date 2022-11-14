@@ -911,8 +911,8 @@ export function tapTickCoordinates (x, y) {
 
 export function inspectPageObject (
   packageName,
-  packageVersion,
   moduleName,
+  packageVersion,
   packagePath,
   isIOS) {
   return async (dispatch) => {
@@ -920,8 +920,8 @@ export function inspectPageObject (
     try {
       const treeData = await buildTreeData(
         packageName,
-        packageVersion,
         moduleName,
+        packageVersion,
         packagePath,
         isIOS);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
