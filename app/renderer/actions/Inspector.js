@@ -909,11 +909,21 @@ export function tapTickCoordinates (x, y) {
   };
 }
 
-export function inspectPageObject (packageName, packageVersion, moduleName, isIOS) {
+export function inspectPageObject (
+  packageName,
+  moduleName,
+  packageVersion,
+  packagePath,
+  isIOS) {
   return async (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(packageName, packageVersion, moduleName, isIOS);
+      const treeData = await buildTreeData(
+        packageName,
+        moduleName,
+        packageVersion,
+        packagePath,
+        isIOS);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
     } catch (ex) {
       dispatch({type: PAGEOBJECT_INSPECTING_ERROR, errorMsg: ex.message});

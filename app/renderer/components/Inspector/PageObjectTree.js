@@ -12,15 +12,17 @@ export default class PageObjectTree extends Component {
     super(props);
     this.state = {
       items: [],
-      text: '',
+      module: '',
       package: '',
-      version: '',
-      module: ''
+      path: '',
+      version: 'latest',
+      text: ''
     };
 
-    this.handlePackageNameChange = this.handlePackageNameChange.bind(this);
-    this.handlePackageVersionChange = this.handlePackageVersionChange.bind(this);
     this.handleModuleChange = this.handleModuleChange.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handlePathChange = this.handlePathChange.bind(this);
+    this.handleVersionTagChange = this.handleVersionTagChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleFindPO = this.handleFindPO.bind(this);
   }
@@ -29,18 +31,27 @@ export default class PageObjectTree extends Component {
     this.setState({module: event.target.value});
   }
 
-  handlePackageNameChange (event) {
+  handleNameChange (event) {
     this.setState({package: event.target.value});
   }
 
-  handlePackageVersionChange (event) {
+  handleVersionTagChange (event) {
     this.setState({version: event.target.value});
+  }
+
+  handlePathChange (event) {
+    this.setState({path: event.target.value});
   }
 
   handleSubmit (event) {
     const { driver, inspectPageObject, resetSearchForCurrentPOs } = this.props;
     const { isIOS } = driver.client;
-    inspectPageObject(this.state.package, this.state.version, this.state.module, isIOS);
+    inspectPageObject(
+      this.state.package,
+      this.state.module,
+      this.state.version,
+      this.state.path,
+      isIOS);
     resetSearchForCurrentPOs();
     event.preventDefault();
   }
@@ -58,29 +69,19 @@ export default class PageObjectTree extends Component {
       <div className={InspectorStyles['tree-container']}>
         <Form>
           <Row gutter={8}>
-            <Col span={12}>
+            <Col span={20}>
               <FormItem>
                 <Input
                   type='text'
                   addonBefore={t('utamPageObjectPackageName')}
                   placeholder='fake-pageobjects'
                   value={this.state.package}
-                  onChange={this.handlePackageNameChange} />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem>
-                <Input
-                  type='text'
-                  addonBefore={t('utamPageObjectPackageVersion')}
-                  placeholder='1.0.0'
-                  value={this.state.version}
-                  onChange={this.handlePackageVersionChange} />
+                  onChange={this.handleNameChange} />
               </FormItem>
             </Col>
           </Row>
           <Row gutter={8}>
-            <Col span={12}>
+            <Col span={20}>
               <FormItem>
                 <Input
                   type='text'
@@ -90,6 +91,35 @@ export default class PageObjectTree extends Component {
                   onChange={this.handleModuleChange} />
               </FormItem>
             </Col>
+          </Row>
+          <Row gutter={8}>
+            <Col span={20}>
+              <FormItem>
+                <Input
+                  type='text'
+                  addonBefore={t('utamPageObjectPackageVersion')}
+                  placeholder='latest'
+                  value={this.state.version}
+                  onChange={this.handleVersionTagChange} />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row gutter={8}>
+            <ul>OR:</ul>
+          </Row>
+          <Row>
+            <Col span={20}>
+              <FormItem>
+                <Input
+                  type='text'
+                  addonBefore={t('utamPageObjectFullPath')}
+                  placeholder='full path'
+                  value={this.state.path}
+                  onChange={this.handlePathChange} />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row gutter={8}>
             <Col span={4}>
               <FormItem>
                 <Button icon={<SelectOutlined/>} onClick={this.handleSubmit} >{t('startInspect')}</Button>
@@ -112,17 +142,29 @@ export default class PageObjectTree extends Component {
 }
 
 
-export async function buildTreeData (packageName, packageVersion, moduleName, isIOS) {
+export async function buildTreeData (
+  packageName,
+  moduleName,
+  packageVersion,
+  packagePath,
+  isIOS) {
   const util = require('util');
   const exec = util.promisify(require('child_process').exec);
-  if (packageName.size !== 0 && packageVersion.size !== 0 && moduleName.size !== 0) {
-    await exec(`npm install ${packageName}@${packageVersion}`);
-    const appDir = process.cwd();
-    const packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
+  if ((packageName.length !== 0 && moduleName.length !== 0) ||
+       packagePath.length !== 0) {
+    let packageDir = '';
+    if (packageName.length !== 0 && moduleName.length !== 0) {
+      await exec(`npm install ${packageName}@${packageVersion}`);
+      const appDir = process.cwd();
+      packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
+    } else {
+      packageDir = Path.join(packagePath, '/src/main/resources/spec');
+    }
     const poPackageParser = new PageObjectPacakgeParser(packageDir, isIOS);
     poPackageParser.buildTreeMap();
-
     const treeMap = poPackageParser.getMap();
     return Array.from(treeMap, ([name, children]) => (children));
+  } else {
+    throw new Error(`There is no information supplied for the Page Object package. You have to either supply the Page Object npm package information (name, version and module name) or package full path that you have in your local.`);
   }
 }

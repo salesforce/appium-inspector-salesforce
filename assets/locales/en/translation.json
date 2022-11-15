@@ -348,8 +348,9 @@
   "inspectorMoved": "The Inspector is now released as a separate app. Please visit {{url}}",
   "utamPageObjectTree": "UTAM Page Object Tree",
   "utamPageObjectPackageName": "Page Object Package Name",
-  "utamPageObjectPackageVersion": "Page Object Package Version",
+  "utamPageObjectPackageVersion": "Page Object Package Version/Tag",
   "utamPageObjectModuleName": "Page Object Module Name",
+  "utamPageObjectFullPath": "Page Object Full Path",
   "startInspect": "Start Inspect",
   "findCurrentPO": "Find Current PO"
 }
