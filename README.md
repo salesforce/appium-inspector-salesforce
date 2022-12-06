@@ -14,7 +14,7 @@ This fork will be updated with all new features/fixes of the original [Appium In
 
 ## Installation
 
-Since this is just a standard Appium Inspector with Salesforce specific feature built on top of it, you can use the same [install instructions](https://github.com/appium/appium-inspector#installation) and launch it. 
+Since this is just a standard Appium Inspector with Salesforce specific feature built on top of it, you can use the same [install instructions](https://github.com/appium/appium-inspector#installation) and launch it.  You can get the most recent published version of this app at the [Releases](https://github.com/salesforce/appium-inspector-salesforce/releases/) section of this repo.
 
 ## Inspect UTAM Page Object
 
