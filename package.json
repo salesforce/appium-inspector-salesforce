@@ -1,5 +1,5 @@
 {
-  "name": "appium-inspector",
+  "name": "appium-inspector-salesforce",
   "version": "1.0.0-beta",
   "description": "An app inspector for use with an Appium server and UTAM Page Objects",
   "repository": {
