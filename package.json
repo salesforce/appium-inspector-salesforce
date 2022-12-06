@@ -1,24 +1,18 @@
 {
   "name": "appium-inspector",
-  "version": "2022.9.1",
-  "description": "An app inspector for use with an Appium server",
+  "version": "1.0.0-beta",
+  "description": "An app inspector for use with an Appium server and UTAM Page Objects",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/appium/appium-inspector.git"
+    "url": "git+https://github.com/salesforce/appium-inspector-salesforce.git"
   },
   "author": {
     "name": "Appium Developers",
-    "url": "https://github.com/appium"
+    "url": "https://github.com/salesforce"
   },
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/appium/appium-inspector/issues"
-  },
-  "keywords": [
-    "appium"
-  ],
+  "license": "MIT",
   "assetsPath": "assets",
-  "homepage": "https://github.com/appium/appium-inspector",
+  "homepage": "https://github.com/salesforce/appium-inspector-salesforce",
   "main": "dist/main.js",
   "scripts": {
     "test": "run-s test:*",

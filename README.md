@@ -29,3 +29,6 @@ There are two ways that you can use to configure which Page Object library to in
 Now, you can start inspect via clicking Start Inspect button to find out all avaialbe Page Objects for the test device platform (iOS or Android) in the configured package. ![screenshot](./docs/inspecting-result.png)
 
 Utill to this step, you can start to work your target page/component via navigating test applicaton on your local simulator or emulator, then you can find out the UTAM Page Object(s) for the current page via clicking Find Current PO button. Inspector helps to find out all matched root Page Object and children Page Objects. Moreover, it exposes all methods (both for Java and JavaScript) that to interact with the element(s) on the page for test script. ![screenshot](./docs/inspecting-current.png)
+
+## License
+The UTAM Java compiler is licensed under the [MIT license](LICENSE).
