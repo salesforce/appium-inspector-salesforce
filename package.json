@@ -165,7 +165,6 @@
     "redux-thunk": "2.4.1",
     "request": "2.88.2",
     "request-promise": "4.2.6",
-    "salesforce-pageobjects": "^2.0.0",
     "semver": "7.3.7",
     "source-map-support": "0.5.21",
     "utam": "^1.0.6",
