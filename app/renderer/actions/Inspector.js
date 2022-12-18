@@ -915,13 +915,11 @@ export function inspectPageObject (
   packageVersion,
   packagePath,
   isIOS) {
-  return async (dispatch) => {
+  return (dispatch) => {
     dispatch({type: START_PAGEOBJECT_INSPECTING});
     try {
-      const treeData = await buildTreeData(
-        packageName,
+      const treeData = buildTreeData(
         moduleName,
-        packageVersion,
         packagePath,
         isIOS);
       dispatch({type: PAGEOBJECT_INSPECTING_DONE, pageObjectTreeData: treeData});
