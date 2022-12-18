@@ -20,11 +20,9 @@ Since this is just a standard Appium Inspector with Salesforce specific feature 
 
 After starting a new session with the test application, then navigate to the UTAM Page Object Tree Tab as shown here ![screenshot](./docs/utam-pageobject-window.png).
 
-There are two ways that you can use to configure which Page Object library to inspect:
+To inspect the [Saleforce published Page Objects](https://www.npmjs.com/package/salesforce-pageobjects) that you have downloaded, you need to configure the values for Page Object Module Name and Page Object Full Path. The modoule name for [SalesforceApp](https://developer.salesforce.com/tools/mobile-debugging) is salesforceapp, and for [Mobile Publisher Playground App](https://help.salesforce.com/s/articleView?id=sf.s1_branded_apps_playground_preview_exp_site.htm&type=5) is playgroundapp. The path is the full path of the unziped package folder. For exmaple, if I have a local package salesforce-pageobjects-2.0.0.tgz at: ${Home}/pageobjects, after unzipping it, the full path value should be ${Home}/pageobjects. 
 
-* Typing in the Page Object package name and module name in the Page Object Package Name and Page Object Module Name fields, for exmaple, salesforce-pageobjects for package and salesforceapp for module for SalesforceApp application. Then, you can give in the target Page Object version you want to use, for example, 1.0.0. If you don't configure any value for it, then the default value: latest will be used. Instead of using package version, you can also use the release tag, for example, winter23, summer22 etc.. 
-
-* Besides to inspect the published Page Objects from NPM site, you can inspect the one that you build locally. In this way, you should configure the Page Object Full Path field that point to your local Page Object package. For exmaple, I have a local package communities-pageobjects-240.0.5.tgz at: ${Home}/jars/, after unzipping it, put its full path value, for example, ${Home}/jars/package/utam-communities-pageobjects. 
+To inspect the customer Page Object package, you only need to configure the full path of the direct parent folder of all page object json files. For example, if I have cutomer Page Objects that are all under ${Home}/pageobjects//src/main/resources/spec, then the full path value should be ${Home}/pageobjects//src/main/resources/spec.
 
 Now, you can start inspect via clicking Start Inspect button to find out all avaialbe Page Objects for the test device platform (iOS or Android) in the configured package. ![screenshot](./docs/inspecting-result.png)
 

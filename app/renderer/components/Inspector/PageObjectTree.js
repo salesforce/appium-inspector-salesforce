@@ -73,18 +73,6 @@ export default class PageObjectTree extends Component {
               <FormItem>
                 <Input
                   type='text'
-                  addonBefore={t('utamPageObjectPackageName')}
-                  placeholder='fake-pageobjects'
-                  value={this.state.package}
-                  onChange={this.handleNameChange} />
-              </FormItem>
-            </Col>
-          </Row>
-          <Row gutter={8}>
-            <Col span={20}>
-              <FormItem>
-                <Input
-                  type='text'
                   addonBefore={t('utamPageObjectModuleName')}
                   placeholder='fakeapp'
                   value={this.state.module}
@@ -93,21 +81,6 @@ export default class PageObjectTree extends Component {
             </Col>
           </Row>
           <Row gutter={8}>
-            <Col span={20}>
-              <FormItem>
-                <Input
-                  type='text'
-                  addonBefore={t('utamPageObjectPackageVersion')}
-                  placeholder='latest'
-                  value={this.state.version}
-                  onChange={this.handleVersionTagChange} />
-              </FormItem>
-            </Col>
-          </Row>
-          <Row gutter={8}>
-            <ul>OR:</ul>
-          </Row>
-          <Row>
             <Col span={20}>
               <FormItem>
                 <Input
@@ -141,24 +114,15 @@ export default class PageObjectTree extends Component {
   }
 }
 
-
-export async function buildTreeData (
-  packageName,
+export function buildTreeData (
   moduleName,
-  packageVersion,
   packagePath,
   isIOS) {
-  const util = require('util');
-  const exec = util.promisify(require('child_process').exec);
-  if ((packageName.length !== 0 && moduleName.length !== 0) ||
+  if (moduleName.length !== 0 ||
        packagePath.length !== 0) {
     let packageDir = '';
-    if (packageName.length !== 0 && moduleName.length !== 0) {
-      await exec(`npm install ${packageName}@${packageVersion}`);
-      const appDir = process.cwd();
-      packageDir = Path.join(appDir, `/node_modules/${packageName}/dist/${moduleName}`);
-    } else {
-      packageDir = Path.join(packagePath, '/src/main/resources/spec');
+    if (moduleName.length !== 0) {
+      packageDir = Path.join(packagePath, `package/dist/${moduleName}`);
     }
     const poPackageParser = new PageObjectPacakgeParser(packageDir, isIOS);
     poPackageParser.buildTreeMap();
